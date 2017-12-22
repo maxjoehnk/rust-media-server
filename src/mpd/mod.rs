@@ -16,6 +16,12 @@ lazy_static! {
     );
 }
 
+#[derive(Deserialize)]
+struct MpdConfig {
+    ip: String,
+    port: i32
+}
+
 mod commands;
 mod error;
 
@@ -91,12 +97,14 @@ fn handle_client(mut stream: TcpStream) {
 }
 
 pub extern fn open(descriptor: &'static str) {
-    let listener = TcpListener::bind(descriptor).unwrap();
-    info!(logger, "Listening on Port 6600");
+    thread::Builder::new().spawn(|| {
+        let listener = TcpListener::bind(descriptor).unwrap();
+        info!(logger, "Listening on Port 6600");
 
-    for stream in listener.incoming() {
-        debug!(logger, "Connection opened");
+        for stream in listener.incoming() {
+            debug!(logger, "Connection opened");
 
-        thread::Builder::new().spawn(move|| handle_client(stream.unwrap()));
-    }
+            thread::Builder::new().spawn(move|| handle_client(stream.unwrap()));
+        }
+    })
 }

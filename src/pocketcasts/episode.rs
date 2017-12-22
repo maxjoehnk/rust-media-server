@@ -1,0 +1,23 @@
+use library::Track;
+use pocketcasts::PocketcastPodcast;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct PocketcastEpisode {
+    //pub podcast: PocketcastPodcast,
+    pub uuid: String,
+    pub size: i32,
+    pub title: String,
+    pub url: String,
+    //pub duration: String
+}
+
+impl PocketcastEpisode {
+    pub fn to_track(&self) -> Track {
+        Track {
+            title: self.title.clone(),
+            artist: None,
+            album: None,//Some(self.podcast.to_album()),
+            url: self.url.clone()
+        }
+    }
+}
