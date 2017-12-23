@@ -6,7 +6,7 @@ use reqwest::header;
 const LOGIN_URI: &'static str = "https://play.pocketcasts.com/users/sign_in";
 const GET_SUBSCRIPTIONS_URI: &'static str = "https://play.pocketcasts.com/web/podcasts/all.json";
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct PocketcastUser {
     email: String,
     password: String,

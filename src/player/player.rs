@@ -33,17 +33,17 @@ impl Player {
             Some(track) => {
                 println!("Playing {:?}", track);
                 decoder.set_property_from_str("uri", track.url.as_str());
+
+                let ret = pipeline.set_state(gst::State::Playing);
+
+                println!("{:?}", ret);
+
+                assert_ne!(ret, gst::StateChangeReturn::Failure);
             },
             None => {}
         }
 
         let bus = pipeline.get_bus().unwrap();
-
-        let ret = pipeline.set_state(gst::State::Playing);
-
-        println!("{:?}", ret);
-
-        assert_ne!(ret, gst::StateChangeReturn::Failure);
 
         loop {
             let msg = match bus.timed_pop(gst::CLOCK_TIME_NONE) {

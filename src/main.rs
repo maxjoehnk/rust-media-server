@@ -15,12 +15,25 @@ extern crate toml;
 extern crate gstreamer;
 extern crate glib;
 extern crate libc;
+extern crate regex;
+
+
+mod mpd;
+mod pocketcasts;
+mod library;
+mod player;
 
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::prelude::*;
 
+use std::thread;
+
 use slog::Drain;
+
+use pocketcasts::PocketcastUser;
+use rayon::iter::FromParallelIterator;
+use std::sync::{Arc, Mutex};
 
 lazy_static! {
     static ref logger: slog::Logger = slog::Logger::root(
@@ -29,17 +42,10 @@ lazy_static! {
     );
 }
 
-//mod mpd;
-mod pocketcasts;
-mod library;
-mod player;
-
-use pocketcasts::PocketcastUser;
-use rayon::iter::FromParallelIterator;
-
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct Config {
-    pocketcasts: PocketcastUser
+    pocketcasts: PocketcastUser,
+    mpd: mpd::MpdConfig
 }
 
 fn main() {
@@ -49,7 +55,7 @@ fn main() {
     config_file.read_to_string(&mut config);
     let config: Config = toml::from_str(config.as_str()).unwrap();
 
-    let mut library = library::Library::new();
+    let mut library = Arc::new(Mutex::new(library::Library::new()));
 
     let mut podcasts = config.pocketcasts.get_subscriptions().unwrap();
     let mut episodes: Vec<library::Track> = podcasts
@@ -64,16 +70,37 @@ fn main() {
         .iter()
         .map(|episode| episode.to_track())
         .collect();
-    library.add_all(&mut episodes);
+    {
+        let mut library = library.lock().unwrap();
+        library.add_all(&mut episodes);
+    }
 
     let mut player = player::Player::new();
-    let tracks = library
-        .tracks
-        .into_iter()
-        .take(5)
-        .collect();
-    player.queue.add_multiple(tracks);
-    //player.play();
 
-    // mpd::open("0.0.0.0:6600");
+    let mpd_config = config.mpd.clone();
+
+    let mut mpd_player = player.clone();
+    let mpd_library = library.clone();
+
+    thread::spawn(move|| {
+        mpd::open(mpd_config, mpd_player, mpd_library);
+    });
+
+    let playlist = library::Playlist {
+        title: "Test".to_owned(),
+        tracks: vec![]
+    };
+    {
+        let mut library = library.lock().unwrap();
+        library.playlists.push(playlist);
+    }
+
+    {
+        let library = library.lock().unwrap();
+        let tracks = library
+            .search("Friendly Sessions");
+        player.queue.add_multiple(tracks);
+    }
+
+    player.play();
 }
