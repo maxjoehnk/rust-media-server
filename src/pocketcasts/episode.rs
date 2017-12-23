@@ -2,7 +2,8 @@ use library::Track;
 use pocketcasts::PocketcastPodcast;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct PocketcastEpisode {
+pub struct PocketcastEpisode<> {
+    #[serde(skip)]
     //pub podcast: PocketcastPodcast,
     pub uuid: String,
     pub size: i32,

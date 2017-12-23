@@ -16,7 +16,6 @@ extern crate gstreamer;
 extern crate glib;
 extern crate libc;
 
-use gstreamer::prelude::*;
 use rayon::prelude::*;
 use std::fs::File;
 use std::io::prelude::*;
@@ -45,16 +44,16 @@ struct Config {
 
 fn main() {
     gstreamer::init().unwrap();
-    let mut configFile = File::open("config.toml").unwrap();
+    let mut config_file = File::open("config.toml").unwrap();
     let mut config = String::new();
-    configFile.read_to_string(&mut config);
+    config_file.read_to_string(&mut config);
     let config: Config = toml::from_str(config.as_str()).unwrap();
 
     let mut library = library::Library::new();
 
-    let podcasts = config.pocketcasts.get_subscriptions().unwrap();
+    let mut podcasts = config.pocketcasts.get_subscriptions().unwrap();
     let mut episodes: Vec<library::Track> = podcasts
-        .par_iter()
+        .par_iter_mut()
         .map(|podcast| {
             podcast.get_episodes(&config.pocketcasts).unwrap()
         })
@@ -74,7 +73,7 @@ fn main() {
         .take(5)
         .collect();
     player.queue.add_multiple(tracks);
-    player.play();
+    //player.play();
 
     // mpd::open("0.0.0.0:6600");
 }

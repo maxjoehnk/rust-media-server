@@ -3,6 +3,9 @@ use pocketcasts::PocketcastPodcast;
 use reqwest::Client;
 use reqwest::header;
 
+const LOGIN_URI: &'static str = "https://play.pocketcasts.com/users/sign_in";
+const GET_SUBSCRIPTIONS_URI: &'static str = "https://play.pocketcasts.com/web/podcasts/all.json";
+
 #[derive(Deserialize)]
 pub struct PocketcastUser {
     email: String,
@@ -20,14 +23,13 @@ impl PocketcastUser {
     }
 
     pub fn login(&mut self) {
-        let uri = "https://play.pocketcasts.com/users/sign_in";
         let body = [
             ("[user]email", self.email.as_str()),
             ("[user]password", self.password.as_str())
         ];
 
         let client = Client::new();
-        let res = client.post(uri)
+        let res = client.post(LOGIN_URI)
             .form(&body)
             .send()
             .unwrap();
@@ -36,12 +38,11 @@ impl PocketcastUser {
     }
 
     pub fn get_subscriptions(&self) -> Option<Vec<PocketcastPodcast>> {
-        let uri = "https://play.pocketcasts.com/web/podcasts/all.json";
         let client = Client::new();
         let session = self.session.clone().expect("Login first");
         let mut cookies = header::Cookie::new();
         cookies.set("_social_session", session);
-        let mut res = client.post(uri)
+        let mut res = client.post(GET_SUBSCRIPTIONS_URI)
             .header(cookies)
             .send()
             .unwrap();
