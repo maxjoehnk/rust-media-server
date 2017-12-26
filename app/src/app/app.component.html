@@ -1,0 +1,14 @@
+<rms-header></rms-header>
+<mat-sidenav-container>
+    <mat-sidenav mode="side" opened="true" #sidenav="matSidenav">
+        <mat-list>
+            <mat-list-item>Library</mat-list-item>
+            <mat-list-item>Playlists</mat-list-item>
+        </mat-list>
+    </mat-sidenav>
+    <mat-sidenav-content>
+        <button (click)="sidenav.toggle()">Toggle</button>
+        <router-outlet></router-outlet>
+    </mat-sidenav-content>
+</mat-sidenav-container>
+<rms-player></rms-player>
