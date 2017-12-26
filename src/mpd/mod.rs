@@ -31,10 +31,10 @@ pub struct MpdConfig {
 
 pub fn open(config: MpdConfig, player: Player, library: Arc<Mutex<Library>>) {
     let listener = TcpListener::bind(format!("{}:{}", config.ip, config.port)).unwrap();
-    info!(logger, "Listening on Port 6600");
+    info!(logger, "[MPD] Listening on Port {}", config.port);
 
     for stream in listener.incoming() {
-        debug!(logger, "Connection opened");
+        debug!(logger, "[MPD] Connection opened");
 
         let mut player = player.clone();
         let mut library = library.clone();

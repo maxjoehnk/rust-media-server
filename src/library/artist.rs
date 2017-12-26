@@ -1,6 +1,6 @@
 use library::{Track, Album};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Artist {
     pub name: String,
     pub tracks: Vec<Track>,
