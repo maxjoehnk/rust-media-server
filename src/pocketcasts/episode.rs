@@ -1,4 +1,4 @@
-use library::Track;
+use library::{Track, Provider};
 use pocketcasts::PocketcastPodcast;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -18,7 +18,8 @@ impl PocketcastEpisode {
             title: self.title.clone(),
             artist: None,
             album: None,//Some(self.podcast.to_album()),
-            url: self.url.clone()
+            url: self.url.clone(),
+            provider: Provider::Pocketcasts
         }
     }
 }

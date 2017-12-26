@@ -18,8 +18,12 @@ impl Library {
         }
     }
 
-    pub fn add_all(&mut self, tracks: &mut Vec<Track>) {
+    pub fn add_tracks(&mut self, tracks: &mut Vec<Track>) {
         self.tracks.append(tracks);
+    }
+
+    pub fn add_albums(&mut self, albums: &mut Vec<Album>) {
+        self.albums.append(albums);
     }
 
     pub fn search(&self, query: &'static str) -> Vec<Track> {

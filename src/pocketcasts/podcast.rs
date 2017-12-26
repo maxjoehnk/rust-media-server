@@ -1,5 +1,5 @@
 use pocketcasts::{PocketcastEpisode, PocketcastUser};
-use library::Album;
+use library::{Album, Provider};
 use reqwest::Client;
 use reqwest::header;
 
@@ -52,7 +52,8 @@ impl PocketcastPodcast {
         Album {
             title: self.title.clone(),
             artist: None,
-            tracks
+            tracks,
+            provider: Provider::Pocketcasts
         }
     }
 }
