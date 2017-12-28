@@ -91,7 +91,8 @@ fn main() {
 
     let playlist = library::Playlist {
         title: "Test".to_owned(),
-        tracks: vec![]
+        tracks: vec![],
+        provider: library::Provider::LocalMedia
     };
     {
         let mut library = library.lock().unwrap();
@@ -122,5 +123,9 @@ fn sync_pocketcasts(user: &PocketcastUser, library: &mut library::Library) {
         .iter()
         .map(|episode| episode.to_track())
         .collect();
-    library.add_all(&mut episodes);
+    library.add_tracks(&mut episodes);
+    let mut albums = podcasts.par_iter()
+        .map(|podcast| podcast.to_album())
+        .collect();
+    library.add_albums(&mut albums);
 }

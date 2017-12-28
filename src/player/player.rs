@@ -67,9 +67,7 @@ impl Player {
 
                             assert_ne!(ret, gst::StateChangeReturn::Failure);
                         },
-                        None => {
-                            println!("We're out of tracks");
-                        }
+                        None => {}
                     }
                 },
                 MessageView::Error(err) => {

@@ -13,3 +13,12 @@ pub use self::playlist::Playlist;
 pub use self::track::Track;
 
 pub type GlobalLibrary = Arc<Mutex<Library>>;
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Provider {
+    Pocketcasts,
+    Soundcloud,
+    GooglePlayMusic,
+    Spotify,
+    LocalMedia
+}
