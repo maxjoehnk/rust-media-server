@@ -7,11 +7,10 @@ use std::io::{Read, Write, BufReader, BufRead, Lines};
 use std::thread;
 use std::ops::Add;
 
-use library::Library;
-use player::Player;
+use library::GlobalLibrary;
+use player::GlobalPlayer;
 
 use slog::Drain;
-use std::sync::{Arc, Mutex};
 
 //mod commands;
 mod error;
@@ -25,11 +24,11 @@ lazy_static! {
 
 #[derive(Deserialize, Clone)]
 pub struct MpdConfig {
-    ip: String,
-    port: i32
+    pub ip: String,
+    pub port: i32
 }
 
-pub fn open(config: MpdConfig, player: Player, library: Arc<Mutex<Library>>) {
+pub fn open(config: MpdConfig, player: GlobalPlayer, library: GlobalLibrary) {
     let listener = TcpListener::bind(format!("{}:{}", config.ip, config.port)).unwrap();
     info!(logger, "[MPD] Listening on Port {}", config.port);
 
@@ -43,7 +42,7 @@ pub fn open(config: MpdConfig, player: Player, library: Arc<Mutex<Library>>) {
     }
 }
 
-fn handle_client(mut stream: TcpStream, player: Player, library: Arc<Mutex<Library>>) {
+fn handle_client(mut stream: TcpStream, player: GlobalPlayer, library: GlobalLibrary) {
     let mut reader = BufReader::new(stream);
     let header = "OK MPD 0.16.0\n";
     let result = reader.get_ref().write(header.as_bytes());
@@ -170,7 +169,7 @@ fn parse_single(line: String) -> Option<MpdCommands> {
     }
 }
 
-fn handle_command(command: MpdCommands, player: &Player, library: &Arc<Mutex<Library>>) -> String {
+fn handle_command(command: MpdCommands, player: &GlobalPlayer, library: &GlobalLibrary) -> String {
     match command {
         MpdCommands::Status => handle_status(),
         MpdCommands::CurrentSong => String::new(),

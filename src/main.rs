@@ -50,9 +50,9 @@ lazy_static! {
 
 #[derive(Deserialize, Clone)]
 struct Config {
-    pocketcasts: PocketcastUser,
-    mpd: mpd::MpdConfig,
-    http: http::HttpConfig
+    pocketcasts: Option<PocketcastUser>,
+    mpd: Option<mpd::MpdConfig>,
+    http: Option<http::HttpConfig>
 }
 
 fn main() {
@@ -64,14 +64,20 @@ fn main() {
 
     let library = Arc::new(Mutex::new(library::Library::new()));
     {
-        let mut library = library.lock().unwrap();
-        sync_pocketcasts(&config.pocketcasts, &mut library);
+        if config.pocketcasts.is_some() {
+            let config = config.pocketcasts.unwrap();
+            let mut library = library.lock().unwrap();
+            sync_pocketcasts(&config, &mut library);
+        }
     }
 
-    let mut player = player::Player::new();
+    let player = Arc::new(Mutex::new(player::Player::new()));
 
     {
-        let config = config.mpd.clone();
+        let config = config.mpd.unwrap_or(mpd::MpdConfig {
+            ip: "0.0.0.0".to_owned(),
+            port: 6600
+        });
 
         let player = player.clone();
         let library = library.clone();
@@ -82,10 +88,14 @@ fn main() {
     }
 
     {
-        let config = config.http.clone();
+        let config = config.http.unwrap_or(http::HttpConfig {
+            ip: "0.0.0.0".to_owned(),
+            port: 8080
+        });
+        let player = player.clone();
         let library = library.clone();
         thread::spawn(move|| {
-            http::open(config, library).unwrap();
+            http::open(config, player, library).unwrap();
         });
     }
 
@@ -101,12 +111,21 @@ fn main() {
 
     {
         let library = library.lock().unwrap();
+        let mut player = player.lock().unwrap();
         let tracks = library
             .search("Friendly Sessions");
         player.queue.add_multiple(tracks);
     }
 
-    player.play();
+    {
+        let mut player = player.lock().unwrap();
+        player.play();
+    }
+
+    {
+        player::main_loop(player.clone()).join();
+        println!("After main loop");
+    }
 }
 
 fn sync_pocketcasts(user: &PocketcastUser, library: &mut library::Library) {
