@@ -62,6 +62,8 @@ fn main() {
     config_file.read_to_string(&mut config).unwrap();
     let config: Config = toml::from_str(config.as_str()).unwrap();
 
+    let mut threads = vec![];
+
     let library = Arc::new(Mutex::new(library::Library::new()));
     {
         if config.pocketcasts.is_some() {
@@ -82,9 +84,10 @@ fn main() {
         let player = player.clone();
         let library = library.clone();
 
-        thread::spawn(move|| {
-            mpd::open(config, player, library);
+        let handle = thread::spawn(move|| {
+            mpd::open(config, player, library)
         });
+        threads.push(handle);
     }
 
     {
@@ -94,9 +97,10 @@ fn main() {
         });
         let player = player.clone();
         let library = library.clone();
-        thread::spawn(move|| {
+        let handle = thread::spawn(move|| {
             http::open(config, player, library).unwrap();
         });
+        threads.push(handle);
     }
 
     let playlist = library::Playlist {
@@ -123,8 +127,11 @@ fn main() {
     }
 
     {
-        player::main_loop(player.clone()).join();
-        println!("After main loop");
+        let handle = player::main_loop(player.clone());
+        threads.push(handle);
+    }
+    for handle in threads {
+        let _ = handle.join();
     }
 }
 

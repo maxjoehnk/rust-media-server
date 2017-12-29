@@ -2,6 +2,7 @@ use gstreamer as gst;
 use player::{Queue, GlobalPlayer};
 use gstreamer::MessageView;
 use std::thread;
+use std::time::Duration;
 use gstreamer::prelude::*;
 use library::Track;
 
@@ -9,9 +10,7 @@ use library::Track;
 pub struct Player {
     playing: bool,
     pub queue: Queue,
-    pipeline: gst::Pipeline,
-    decoder: gst::Element,
-    sink: gst::Element
+    backend: GstBackend
 }
 
 impl Player {
@@ -19,18 +18,8 @@ impl Player {
         let player = Player {
             playing: false,
             queue: Queue::new(),
-            pipeline: gst::Pipeline::new(None),
-            decoder: gst::ElementFactory::make("uridecodebin", None).expect("uridecodebin"),
-            sink: gst::ElementFactory::make("autoaudiosink", None).expect("autoaudiosink")
+            backend: GstBackend::new()
         };
-
-        player.pipeline.add(&player.decoder).expect("add decoder to pipeline");
-        player.pipeline.add(&player.sink).expect("add sink to pipeline");
-
-        let sink_pad = player.sink.get_static_pad("sink").expect("audio sink_pad");
-        player.decoder.connect_pad_added(move |_el: &gst::Element, pad: &gst::Pad| {
-            pad.link(&sink_pad);
-        });
 
         player
     }
@@ -54,16 +43,51 @@ impl Player {
         }
     }
 
-    pub fn get_bus(&self) -> gst::Bus {
-        self.pipeline.get_bus().unwrap()
+    pub fn get_backend(&self) -> &GstBackend {
+        &self.backend
     }
 
     fn select_track(&self, track: &Track) {
-        println!("Select Track {:?}", track);
+        self.backend.set_track(track, self.playing);
+    }
+}
+
+#[derive(Debug, Clone)]
+struct GstBackend {
+    pipeline: gst::Pipeline,
+    decoder: gst::Element,
+    sink: gst::Element
+}
+
+impl GstBackend {
+    fn new() -> GstBackend {
+        let player = GstBackend {
+            pipeline: gst::Pipeline::new(None),
+            decoder: gst::ElementFactory::make("uridecodebin", None).expect("uridecodebin"),
+            sink: gst::ElementFactory::make("autoaudiosink", None).expect("autoaudiosink")
+        };
+
+        player.pipeline.add(&player.decoder).expect("add decoder to pipeline");
+        player.pipeline.add(&player.sink).expect("add sink to pipeline");
+
+        let sink_pad = player.sink.get_static_pad("sink").expect("audio sink_pad");
+        player.decoder.connect_pad_added(move |_el: &gst::Element, pad: &gst::Pad| {
+            pad.link(&sink_pad);
+        });
+
+        player
+    }
+
+    fn get_bus(&self) -> gst::Bus {
+        self.pipeline.get_bus().unwrap()
+    }
+
+    fn set_track(&self, track: &Track, playing: bool) {
+        println!("Selecting {:?}", track);
         self.pipeline.set_state(gst::State::Null);
         self.decoder.set_property_from_str("uri", track.url.as_str());
 
-        let state = match self.playing {
+        let state = match playing {
             true => gst::State::Playing,
             false => gst::State::Paused
         };
@@ -77,7 +101,7 @@ pub fn main_loop(player: GlobalPlayer) -> thread::JoinHandle<()> {
     thread::spawn(move|| {
         loop {
             let mut player = player.lock().unwrap();
-            let bus = player.get_bus();
+            let bus = player.get_backend().get_bus();
 
             let msg = match bus.timed_pop(gst::CLOCK_TIME_NONE) {
                 None => break,
@@ -97,6 +121,7 @@ pub fn main_loop(player: GlobalPlayer) -> thread::JoinHandle<()> {
                 },
                 _ => (),
             }
+            thread::sleep(Duration::from_millis(100));
         }
     })
 }
