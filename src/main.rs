@@ -23,12 +23,14 @@ extern crate iron;
 extern crate router;
 extern crate mount;
 extern crate staticfile;
+extern crate soundcloud;
 
 mod mpd;
 mod pocketcasts;
 mod library;
 mod player;
 mod http;
+mod provider;
 
 use rayon::prelude::*;
 use std::fs::File;

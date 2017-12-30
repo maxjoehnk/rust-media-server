@@ -4,7 +4,6 @@ version = "0.1.0"
 authors = ["Max <maxjoehnk@gmail.com>"]
 
 [dependencies]
-slog = { version = "2.1.1", features = ["max_level_trace"] }
 slog-term = "2.3.0"
 lazy_static = "1.0.0"
 serde = "1.0"
@@ -23,4 +22,10 @@ staticfile = "*"
 router = "*"
 mount = "*"
 mime = "*"
-#soundcloud = "0.1.0"
+
+[dependencies.slog]
+version = "2.1.1"
+features = ["max_level_trace"]
+
+[dependencies.soundcloud]
+git = "https://github.com/maxjoehnk/soundcloud-rs"
