@@ -6,6 +6,7 @@ extern crate lazy_static;
 extern crate serde;
 #[macro_use]
 extern crate serde_json;
+extern crate serde_mpd;
 #[macro_use]
 extern crate serde_derive;
 extern crate reqwest;
@@ -26,13 +27,13 @@ extern crate staticfile;
 extern crate soundcloud;
 
 mod mpd;
-mod pocketcasts;
 mod library;
 mod player;
 mod http;
 mod provider;
 
-use rayon::prelude::*;
+use provider::ProviderInstance;
+
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -40,7 +41,6 @@ use std::thread;
 
 use slog::Drain;
 
-use pocketcasts::PocketcastUser;
 use std::sync::{Arc, Mutex};
 
 lazy_static! {
@@ -52,9 +52,10 @@ lazy_static! {
 
 #[derive(Deserialize, Clone)]
 struct Config {
-    pocketcasts: Option<PocketcastUser>,
     mpd: Option<mpd::MpdConfig>,
-    http: Option<http::HttpConfig>
+    http: Option<http::HttpConfig>,
+    pocketcasts: Option<provider::pocketcasts::PocketcastsProvider>,
+    soundcloud: Option<provider::soundcloud::SoundcloudProvider>
 }
 
 fn main() {
@@ -67,12 +68,9 @@ fn main() {
     let mut threads = vec![];
 
     let library = Arc::new(Mutex::new(library::Library::new()));
-    {
-        if config.pocketcasts.is_some() {
-            let config = config.pocketcasts.unwrap();
-            let mut library = library.lock().unwrap();
-            sync_pocketcasts(&config, &mut library);
-        }
+    if config.pocketcasts.is_some() {
+        let mut provider = config.pocketcasts.unwrap();
+        provider.sync(library.clone()).unwrap();
     }
 
     let player = Arc::new(Mutex::new(player::Player::new()));
@@ -108,7 +106,7 @@ fn main() {
     let playlist = library::Playlist {
         title: "Test".to_owned(),
         tracks: vec![],
-        provider: library::Provider::LocalMedia
+        provider: provider::Provider::LocalMedia
     };
     {
         let mut library = library.lock().unwrap();
@@ -135,25 +133,4 @@ fn main() {
     for handle in threads {
         let _ = handle.join();
     }
-}
-
-fn sync_pocketcasts(user: &PocketcastUser, library: &mut library::Library) {
-    let mut podcasts = user.get_subscriptions().unwrap();
-    let mut episodes: Vec<library::Track> = podcasts
-        .par_iter_mut()
-        .map(|podcast| {
-            podcast.get_episodes(&user).unwrap()
-        })
-        .reduce(|| vec![], |mut a, mut b| {
-            a.append(&mut b);
-            a
-        })
-        .iter()
-        .map(|episode| episode.to_track())
-        .collect();
-    library.add_tracks(&mut episodes);
-    let mut albums = podcasts.par_iter()
-        .map(|podcast| podcast.to_album())
-        .collect();
-    library.add_albums(&mut albums);
 }

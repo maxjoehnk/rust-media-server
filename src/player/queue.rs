@@ -30,6 +30,18 @@ impl Queue {
         self.tracks.clear();
     }
 
+    pub fn prev(&mut self) -> Option<&Track> {
+        self.current
+            .and_then(move|index| {
+                let prev_index = index - 1;
+                if prev_index < 0 {
+                    return None;
+                }
+                self.current = Some(prev_index);
+                self.tracks.get(prev_index)
+            })
+    }
+
     pub fn next(&mut self) -> Option<&Track> {
         self.current
             .and_then(move|index| {

@@ -1,4 +1,5 @@
-use library::{Track, Provider};
+use library::Track;
+use provider::Provider;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Playlist {

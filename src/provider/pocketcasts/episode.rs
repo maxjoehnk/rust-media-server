@@ -1,5 +1,5 @@
-use library::{Track, Provider};
-use pocketcasts::PocketcastPodcast;
+use library::Track;
+use provider::Provider;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PocketcastEpisode<> {

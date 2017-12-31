@@ -1,4 +1,5 @@
-use library::{Artist, Track, Provider};
+use library::{Artist, Track};
+use provider::Provider;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Album {

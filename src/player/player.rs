@@ -6,9 +6,28 @@ use std::time::Duration;
 use gstreamer::prelude::*;
 use library::Track;
 
+#[derive(Debug, Clone, Serialize)]
+pub enum PlayerState {
+    #[serde(rename = "play")]
+    Play,
+    #[serde(rename = "stop")]
+    Stop,
+    #[serde(rename = "pause")]
+    Pause
+}
+
+impl From<PlayerState> for gst::State {
+    fn from(state: PlayerState) -> gst::State {
+        match state {
+            PlayerState::Play => gst::State::Playing,
+            _ => gst::State::Paused
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Player {
-    playing: bool,
+    pub state: PlayerState,
     pub queue: Queue,
     backend: GstBackend
 }
@@ -16,7 +35,7 @@ pub struct Player {
 impl Player {
     pub fn new() -> Player {
         let player = Player {
-            playing: false,
+            state: PlayerState::Stop,
             queue: Queue::new(),
             backend: GstBackend::new()
         };
@@ -25,30 +44,52 @@ impl Player {
     }
 
     pub fn play(&mut self) {
-        self.playing = true;
-        match self.queue.current() {
+        let current = self.queue.current();
+        match current {
             Some(track) => {
+                self.state = PlayerState::Play;
                 self.select_track(&track);
             },
             None => {}
         }
+    }
+
+    pub fn pause(&mut self) {
+        self.state = PlayerState::Pause;
+        self.backend.pause();
+    }
+
+    pub fn stop(&mut self) {
+        self.state = PlayerState::Stop;
+        self.queue.clear();
+    }
+
+    pub fn prev(&mut self) {
+//        match self.queue.prev() {
+//            Some(track) => {
+//                self.select_track(&track);
+//            },
+//            None => {}
+//        }
     }
 
     pub fn next(&mut self) {
-        match self.queue.current() {
-            Some(track) => {
-                self.select_track(&track);
-            },
-            None => {}
-        }
+//        match self.queue.next() {
+//            Some(track) => {
+//                self.select_track(&track);
+//            },
+//            None => {
+//                self.state = PlayerState::Stop;
+//            }
+//        }
     }
 
-    pub fn get_backend(&self) -> &GstBackend {
+    fn get_backend(&self) -> &GstBackend {
         &self.backend
     }
 
     fn select_track(&self, track: &Track) {
-        self.backend.set_track(track, self.playing);
+        self.backend.set_track(track, self.state.clone());
     }
 }
 
@@ -82,44 +123,46 @@ impl GstBackend {
         self.pipeline.get_bus().unwrap()
     }
 
-    fn set_track(&self, track: &Track, playing: bool) {
+    fn set_track(&self, track: &Track, state: PlayerState) {
         println!("Selecting {:?}", track);
         self.pipeline.set_state(gst::State::Null);
         self.decoder.set_property_from_str("uri", track.url.as_str());
 
-        let state = match playing {
-            true => gst::State::Playing,
-            false => gst::State::Paused
-        };
-        let ret = self.pipeline.set_state(state);
+        let ret = self.pipeline.set_state(state.into());
 
         assert_ne!(ret, gst::StateChangeReturn::Failure);
+    }
+
+    fn pause(&self) {
+        self.pipeline.set_state(gst::State::Paused);
     }
 }
 
 pub fn main_loop(player: GlobalPlayer) -> thread::JoinHandle<()> {
     thread::spawn(move|| {
         loop {
-            let mut player = player.lock().unwrap();
-            let bus = player.get_backend().get_bus();
+            {
+                let mut player = player.lock().unwrap();
+                let bus = player.get_backend().get_bus();
 
-            let msg = match bus.timed_pop(gst::CLOCK_TIME_NONE) {
-                None => break,
-                Some(msg) => msg,
-            };
-
-            match msg.view() {
-                MessageView::Eos(..) => player.next(),
-                MessageView::Error(err) => {
-                    println!(
-                        "Error from {}: {} ({:?})",
-                        msg.get_src().unwrap().get_path_string(),
-                        err.get_error(),
-                        err.get_debug()
-                    );
-                    break;
-                },
-                _ => (),
+                match bus.pop() {
+                    None => (),
+                    Some(msg) => {
+                        match msg.view() {
+                            MessageView::Eos(..) => player.next(),
+                            MessageView::Error(err) => {
+                                println!(
+                                    "Error from {}: {} ({:?})",
+                                    msg.get_src().unwrap().get_path_string(),
+                                    err.get_error(),
+                                    err.get_debug()
+                                );
+                                break;
+                            },
+                            _ => (),
+                        }
+                    },
+                };
             }
             thread::sleep(Duration::from_millis(100));
         }

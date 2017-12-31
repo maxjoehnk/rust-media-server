@@ -1,7 +1,8 @@
-use pocketcasts::{PocketcastEpisode, PocketcastUser};
-use library::{Album, Provider};
+use provider::pocketcasts::{PocketcastEpisode, PocketcastUser};
+use library::Album;
 use reqwest::Client;
 use reqwest::header;
+use provider::Provider;
 
 const GET_EPISODES_URI: &'static str = "https://play.pocketcasts.com/web/episodes/find_by_podcast.json";
 

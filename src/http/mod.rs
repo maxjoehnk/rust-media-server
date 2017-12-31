@@ -7,7 +7,7 @@ use std;
 // Iron
 use iron::prelude::*;
 use iron::error::HttpResult;
-use iron::{Handler, Listening};
+use iron::Listening;
 
 use mount::Mount;
 use staticfile::Static;

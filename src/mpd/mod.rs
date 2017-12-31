@@ -1,19 +1,23 @@
+mod commands;
+mod error;
+mod song;
+
 use slog;
 use slog_term;
 use std;
 
 use std::net::{TcpListener, TcpStream};
-use std::io::{Read, Write, BufReader, BufRead, Lines};
+use std::io::{Read, Write, BufReader, BufRead};
 use std::thread;
-use std::ops::Add;
 
 use library::GlobalLibrary;
 use player::GlobalPlayer;
 
 use slog::Drain;
 
-//mod commands;
-mod error;
+use serde_mpd;
+
+use mpd::commands::MpdCommand;
 
 lazy_static! {
     static ref logger: slog::Logger = slog::Logger::root(
@@ -35,8 +39,8 @@ pub fn open(config: MpdConfig, player: GlobalPlayer, library: GlobalLibrary) {
     for stream in listener.incoming() {
         debug!(logger, "[MPD] Connection opened");
 
-        let mut player = player.clone();
-        let mut library = library.clone();
+        let player = player.clone();
+        let library = library.clone();
 
         thread::spawn(move|| handle_client(stream.unwrap(), player, library));
     }
@@ -51,174 +55,134 @@ fn handle_client(mut stream: TcpStream, player: GlobalPlayer, library: GlobalLib
         Err(e) => error!(logger, "{:?}", &e)
     }
 
-    let mut in_list = false;
-
     loop {
         let line = reader.by_ref().lines().next();
         match line {
             Some(line) => {
-                let line = line.unwrap();
-                trace!(logger, "> {:?}", &line);
-                let mut cmd: Option<MpdCommands> = None;
-                if line == "command_list_ok_begin" {
-                    let mut current = reader.by_ref().lines().next().expect("line").expect("line");
-                    trace!(logger, "> {:?}", &current);
-                    let mut cmds: Vec<MpdCommands> = vec![];
-                    while current.as_str() != "command_list_end" {
-                        match parse_single(current) {
-                            Some(cmd) => cmds.push(cmd),
-                            None => {}
-                        }
-                        current = reader.by_ref().lines().next().expect("line").expect("line");
-                        trace!(logger, "> {:?}", &current);
-                    }
-                    cmd = Some(MpdCommands::CommandList(cmds));
-                }else {
-                    cmd = parse_single(line);
-                }
-                match cmd {
-                    Some(cmd) => {
-                        let mut result = handle_command(cmd, &player, &library);
-                        result += "OK\n";
-                        trace!(logger, "< {:?}", &result);
-                        reader.get_ref().write(result.as_bytes());
-                    },
-                    None => {}
-                }
-            },
-            None => {}
-        }
-        /*match line {
-            Some(result) => {
-                let input: String = result.unwrap();
-                let result = match input.as_str() {
-                    "command_list_ok_begin" => {
-                        debug!(logger, "Command List");
-                        in_list = true;
-                        String::new()
-                    },
-                    "command_list_end" => {
-                        debug!(logger, "Command List end");
-                        in_list = false;
-                        String::from("OK\n")
-                    },
-                    _ => {
-                        let mut r = handle_command(input).unwrap();
-                        if in_list {
-                            r.push_str("list_OK\n");
+                match line {
+                    Ok(line) => {
+                        trace!(logger, "> {:?}", &line);
+                        let cmd: Result<MpdCommands, serde_mpd::Error> = if line == "command_list_ok_begin" {
+                            let mut current = reader.by_ref().lines().next().expect("line").expect("line");
+                            trace!(logger, "> {:?}", &current);
+                            let mut cmds: Vec<MpdCommands> = vec![];
+                            while current.as_str() != "command_list_end" {
+                                match parse_single(current) {
+                                    Ok(cmd) => cmds.push(cmd),
+                                    Err(_) => {}
+                                }
+                                current = reader.by_ref().lines().next().expect("line").expect("line");
+                                trace!(logger, "> {:?}", &current);
+                            }
+                            Ok(MpdCommands::CommandList(cmds))
                         }else {
-                            r.push_str("OK\n");
+                            parse_single(line)
+                        };
+                        match cmd {
+                            Ok(MpdCommands::Idle) => {},
+                            Ok(cmd) => {
+                                let mut result = handle_mpd_command(cmd, &player, &library).unwrap();
+                                result += "OK\n";
+                                trace!(logger, "< {:?}", &result);
+                                reader.get_ref().write(result.as_bytes());
+                            },
+                            Err(err) => {
+                                println!("Error {:?}", err);
+                            }
                         }
-                        r
+                    },
+                    Err(err) => {
+                        error!(logger, "{:?}", &err);
+                        break;
                     }
-                };
-                trace!(logger, "< {:?}", &result);
-                reader.get_ref().write(result.as_bytes());
+                }
             },
             None => break
-        }*/
-    }
-}
-
-#[derive(Debug)]
-enum MpdCommands {
-    Status,
-    CurrentSong,
-    CommandList(Vec<MpdCommands>),
-    PlaylistChanges(String),
-    Outputs,
-    Decoders,
-    Idle,
-    NoIdle,
-    ListPlaylists,
-    ListPlaylist(String),
-    ListPlaylistInfo(String),
-    LoadPlaylist(String)
-}
-
-fn handle_status() -> String {
-    let status = String::new();
-    let status = status.add("volume: 100\n");
-    let status = status.add("repeat: 0\n");
-    let status = status.add("random: 0\n");
-    let status = status.add("single: 0\n");
-    let status = status.add("consume: 0\n");
-    let status = status.add("playlist: 0\n");
-    let status = status.add("playlistlength: 0\n");
-    let status = status.add("xfade: 0\n");
-    let status = status.add("state: stop\n");
-    status
-}
-
-fn parse_single(line: String) -> Option<MpdCommands> {
-    let reg = ::regex::Regex::new(r#"plchanges "(\d+)""#).unwrap();
-    match line.as_str() {
-        "status" => Some(MpdCommands::Status),
-        "currentsong" => Some(MpdCommands::CurrentSong),
-        "outputs" => Some(MpdCommands::Outputs),
-        "decoders" => Some(MpdCommands::Decoders),
-        "noidle" => Some(MpdCommands::NoIdle),
-        "listplaylists" => Some(MpdCommands::ListPlaylists),
-        _ => {
-            if reg.is_match(line.as_str()) {
-                let changes = reg.captures(line.as_str()).unwrap().get(0).unwrap().as_str().to_owned();
-                return Some(MpdCommands::PlaylistChanges(changes));
-            }
-            None
         }
     }
+
+    debug!(logger, "[MPD] Connection closed");
 }
 
-fn handle_command(command: MpdCommands, player: &GlobalPlayer, library: &GlobalLibrary) -> String {
-    match command {
-        MpdCommands::Status => handle_status(),
-        MpdCommands::CurrentSong => String::new(),
+#[derive(Debug, Deserialize)]
+enum MpdCommands {
+    #[serde(rename = "status")]
+    Status,
+    #[serde(rename = "currentsong")]
+    CurrentSong,
+    #[serde(rename = "commandlist")]
+    CommandList(Vec<MpdCommands>),
+    #[serde(rename = "plchanges")]
+    PlaylistChanges(String),
+    #[serde(rename = "outputs")]
+    Outputs,
+    #[serde(rename = "decoders")]
+    Decoders,
+    #[serde(rename = "idle")]
+    Idle,
+    #[serde(rename = "noidle")]
+    NoIdle,
+    #[serde(rename = "listplaylists")]
+    ListPlaylists,
+    #[serde(rename = "listplaylist")]
+    ListPlaylist(String),
+    #[serde(rename = "listplaylistinfo")]
+    ListPlaylistInfo(String),
+    #[serde(rename = "load")]
+    LoadPlaylist(String),
+    #[serde(rename = "lsinfo")]
+    ListInfo(String),
+    #[serde(rename = "next")]
+    Next,
+    #[serde(rename = "pause")]
+    Pause(bool),
+    #[serde(rename = "play")]
+    Play(u64),
+    #[serde(rename = "previous")]
+    Previous,
+    #[serde(rename = "stop")]
+    Stop
+}
+
+fn parse_single(line: String) -> Result<MpdCommands, serde_mpd::Error> {
+    serde_mpd::from_str(line.as_str())
+}
+
+fn handle_mpd_command(cmd: MpdCommands, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<String, error::MpdError> {
+    debug!(logger, "Command: {:?}", &cmd);
+    match cmd {
+        MpdCommands::Status => commands::StatusCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::CurrentSong => commands::CurrentSongCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::Pause(true) => commands::PauseCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::Stop => commands::StopCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::ListInfo(path) => commands::ListInfoCommand::new(path).handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::ListPlaylists => commands::ListPlaylistsCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::ListPlaylist(name) => commands::ListPlaylistCommand::new(name).handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::ListPlaylistInfo(name) => commands::ListPlaylistInfoCommand::new(name).handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::LoadPlaylist(name) => commands::LoadPlaylistCommand::new(name).handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::Previous => commands::PreviousCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::Next => commands::NextCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::Outputs => commands::OutputsCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::CommandList(commands) => {
             let mut result = String::new();
             for command in commands {
-                result += handle_command(command, player, library).as_str();
+                result += handle_mpd_command(command, player, library).unwrap().as_str();
                 result += "list_OK\n";
             }
-            result
-        },
-        MpdCommands::PlaylistChanges(version) => {
-            String::new()
-        },
-        MpdCommands::Outputs => {
-            String::from("outputid: 0\noutputname: Default\noutputenabled: 0\n")
-        },
-        MpdCommands::Decoders => {
-            String::new()
-        },
-        MpdCommands::Idle => {
-            String::new()
-        },
-        MpdCommands::NoIdle => {
-            String::new()
-        },
-        MpdCommands::ListPlaylists => {
-            library.lock()
-                .unwrap()
-                .playlists
-                .iter()
-                .map(|playlist| format!("playlist: {}\nLast-Modified: {}\n", playlist.title, "2017-12-23T17:15:13Z").to_owned())
-                .collect()
-        },
-        MpdCommands::ListPlaylist(name) => {
-            let library = library.lock().unwrap();
-            let playlist = library
-                .playlists
-                .iter()
-                .find(|playlist| playlist.title == name);
-            match playlist {
-                Some(playlist) => {
-                    println!("Found the playlist");
-                    String::new()
-                },
-                None => String::new()
-            }
-        },
-        MpdCommands::ListPlaylistInfo(name) => String::new(),
-        MpdCommands::LoadPlaylist(name) => String::new()
+            Ok(result)
+        }
+        _ => Ok(String::new())
     }
 }

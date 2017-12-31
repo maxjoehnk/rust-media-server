@@ -29,3 +29,6 @@ features = ["max_level_trace"]
 
 [dependencies.soundcloud]
 git = "https://github.com/maxjoehnk/soundcloud-rs"
+
+[dependencies.serde_mpd]
+path = "serde_mpd"
