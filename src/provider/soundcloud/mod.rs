@@ -10,7 +10,7 @@ pub struct SoundcloudProvider {
 }
 
 impl provider::ProviderInstance for SoundcloudProvider {
-    fn sync(&mut self, library: GlobalLibrary) -> Result<(), provider::SyncError> {
+    fn sync(&mut self, _library: GlobalLibrary) -> Result<(), provider::SyncError> {
         Ok(())
     }
     fn root(&self) -> provider::ProviderFolder {

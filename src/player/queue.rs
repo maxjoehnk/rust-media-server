@@ -3,7 +3,7 @@ use library::{Track, Playlist};
 #[derive(Debug, Clone)]
 pub struct Queue {
     tracks: Vec<Track>,
-    current: Option<usize>
+    current: Option<i64>
 }
 
 impl Queue {
@@ -38,7 +38,7 @@ impl Queue {
                     return None;
                 }
                 self.current = Some(prev_index);
-                self.tracks.get(prev_index)
+                self.tracks.get(prev_index as usize)
             })
     }
 
@@ -46,16 +46,16 @@ impl Queue {
         self.current
             .and_then(move|index| {
                 let next_index = index + 1;
-                if next_index >= self.tracks.len() {
+                if next_index >= self.tracks.len() as i64 {
                     return None;
                 }
                 self.current = Some(next_index);
-                self.tracks.get(next_index)
+                self.tracks.get(next_index as usize)
             })
     }
 
     pub fn current(&self) -> Option<&Track> {
         self.current
-            .and_then(move|index| self.tracks.get(index))
+            .and_then(move|index| self.tracks.get(index as usize))
     }
 }

@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate slog;
 extern crate slog_term;
+extern crate slog_async;
 #[macro_use]
 extern crate lazy_static;
 extern crate serde;
@@ -32,24 +33,12 @@ mod player;
 mod http;
 mod provider;
 mod jobs;
-
-use provider::ProviderInstance;
+mod logger;
 
 use std::fs::File;
 use std::io::prelude::*;
 
-use std::thread;
-
-use slog::Drain;
-
 use std::sync::{Arc, Mutex};
-
-lazy_static! {
-    static ref logger: slog::Logger = slog::Logger::root(
-        slog_term::FullFormat::new(slog_term::PlainSyncDecorator::new(std::io::stdout()))
-            .build().fuse(), o!()
-    );
-}
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
@@ -71,6 +60,7 @@ fn testing(player: player::GlobalPlayer, library: library::GlobalLibrary) {
     }
 
     {
+        std::thread::sleep(std::time::Duration::from_secs(2)); // wait for sync
         let library = library.lock().unwrap();
         let mut player = player.lock().unwrap();
         let tracks = library
@@ -84,13 +74,16 @@ fn testing(player: player::GlobalPlayer, library: library::GlobalLibrary) {
     }
 }
 
-fn main() {
-    gstreamer::init().unwrap();
+fn read_config() -> Config {
     let mut config_file = File::open("config.toml").unwrap();
     let mut config = String::new();
     config_file.read_to_string(&mut config).unwrap();
-    let config: Config = toml::from_str(config.as_str()).unwrap();
+    toml::from_str(config.as_str()).unwrap()
+}
 
+fn main() {
+    gstreamer::init().unwrap();
+    let config = read_config();
     let library = Arc::new(Mutex::new(library::Library::new()));
     let player = Arc::new(Mutex::new(player::Player::new()));
 
@@ -100,6 +93,8 @@ fn main() {
         jobs::gst::spawn(player.clone()),
         jobs::sync::spawn(config.clone(), library.clone())
     ];
+
+    println!("after thread spawn");
 
     testing(player.clone(), library.clone());
 

@@ -46,7 +46,7 @@ impl StatusCommand {
 }
 
 impl MpdCommand<StatusResponse> for StatusCommand {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<StatusResponse, MpdError> {
+    fn handle(&self, player: &GlobalPlayer, _library: &GlobalLibrary) -> Result<StatusResponse, MpdError> {
         let player = player.lock().unwrap();
         Ok(StatusResponse {
             volume: 0,

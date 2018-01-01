@@ -17,7 +17,7 @@ impl ListPlaylistInfoCommand {
 }
 
 impl MpdCommand<Vec<MpdSong>> for ListPlaylistInfoCommand {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<Vec<MpdSong>, MpdError> {
+    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary) -> Result<Vec<MpdSong>, MpdError> {
         let library = library.lock().unwrap();
         let playlist = library
             .playlists

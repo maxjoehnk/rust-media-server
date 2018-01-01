@@ -2,9 +2,7 @@ mod commands;
 mod error;
 mod song;
 
-use slog;
-use slog_term;
-use std;
+use logger::logger;
 
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write, BufReader, BufRead};
@@ -13,18 +11,9 @@ use std::thread;
 use library::GlobalLibrary;
 use player::GlobalPlayer;
 
-use slog::Drain;
-
 use serde_mpd;
 
 use mpd::commands::MpdCommand;
-
-lazy_static! {
-    static ref logger: slog::Logger = slog::Logger::root(
-        slog_term::FullFormat::new(slog_term::PlainSyncDecorator::new(std::io::stdout()))
-            .build().fuse(), o!()
-    );
-}
 
 #[derive(Deserialize, Clone)]
 pub struct MpdConfig {
@@ -52,7 +41,7 @@ fn handle_client(mut stream: TcpStream, player: GlobalPlayer, library: GlobalLib
     let result = reader.get_ref().write(header.as_bytes());
     match result {
         Ok(_) => trace!(logger, "< {:?}", &header),
-        Err(e) => error!(logger, "{:?}", &e)
+        Err(e) => error!(logger, "[MPD] {:?}", &e)
     }
 
     loop {
@@ -87,12 +76,12 @@ fn handle_client(mut stream: TcpStream, player: GlobalPlayer, library: GlobalLib
                                 reader.get_ref().write(result.as_bytes());
                             },
                             Err(err) => {
-                                println!("Error {:?}", err);
+                                error!(logger, "[MPD] {:?}", err);
                             }
                         }
                     },
                     Err(err) => {
-                        error!(logger, "{:?}", &err);
+                        error!(logger, "[MPD] {:?}", &err);
                         break;
                     }
                 }
@@ -149,7 +138,7 @@ fn parse_single(line: String) -> Result<MpdCommands, serde_mpd::Error> {
 }
 
 fn handle_mpd_command(cmd: MpdCommands, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<String, error::MpdError> {
-    debug!(logger, "Command: {:?}", &cmd);
+    debug!(logger, "[MPD] Command: {:?}", &cmd);
     match cmd {
         MpdCommands::Status => commands::StatusCommand::new().handle(player, library)
             .map(|res| serde_mpd::to_string(&res).unwrap()),

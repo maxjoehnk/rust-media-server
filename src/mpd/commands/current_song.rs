@@ -13,10 +13,13 @@ impl CurrentSongCommand {
     }
 }
 
-impl MpdCommand<MpdSong> for CurrentSongCommand {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<MpdSong, MpdError> {
+impl MpdCommand<Option<MpdSong>> for CurrentSongCommand {
+    fn handle(&self, player: &GlobalPlayer, _library: &GlobalLibrary) -> Result<Option<MpdSong>, MpdError> {
         let player = player.lock().unwrap();
-        let track = player.queue.current().unwrap().clone();
-        Ok(MpdSong::from(track))
+        let track = match player.queue.current() {
+            Some(track) => Some(MpdSong::from(track.clone())),
+            None => None
+        };
+        Ok(track)
     }
 }

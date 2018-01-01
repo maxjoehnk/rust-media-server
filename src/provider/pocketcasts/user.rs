@@ -14,14 +14,6 @@ pub struct PocketcastUser {
 }
 
 impl PocketcastUser {
-    pub fn new(email: &'static str, password: &'static str) -> PocketcastUser {
-        PocketcastUser {
-            email: email.to_string(),
-            password: password.to_string(),
-            session: None
-        }
-    }
-
     pub fn login(&mut self) {
         let body = [
             ("[user]email", self.email.as_str()),

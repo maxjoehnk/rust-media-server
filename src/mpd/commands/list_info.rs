@@ -1,6 +1,6 @@
 use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
-use library::{GlobalLibrary, Track};
+use library::GlobalLibrary;
 use player::GlobalPlayer;
 use mpd::commands::list_playlists::PlaylistEntry;
 
@@ -32,7 +32,7 @@ impl ListInfoCommand {
 }
 
 impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>)> for ListInfoCommand {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<(Vec<PathItem>, Vec<PlaylistEntry>), MpdError> {
+    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary) -> Result<(Vec<PathItem>, Vec<PlaylistEntry>), MpdError> {
         match self.path {
             None => {
                 let folders = vec![

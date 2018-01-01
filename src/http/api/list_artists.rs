@@ -2,18 +2,16 @@ use iron::prelude::*;
 use iron::status;
 use iron::Handler;
 
-use std::sync::{Arc, Mutex};
-
-use library::Library;
+use library::GlobalLibrary;
 
 use serde_json;
 
 pub struct ListArtistsHandler {
-    library: Arc<Mutex<Library>>
+    library: GlobalLibrary
 }
 
 impl ListArtistsHandler  {
-    pub fn new(library: Arc<Mutex<Library>>) -> ListArtistsHandler  {
+    pub fn new(library: GlobalLibrary) -> ListArtistsHandler  {
         ListArtistsHandler  {
             library
         }

@@ -1,8 +1,4 @@
-// Logging
-use slog;
-use slog_term;
-use slog::Drain;
-use std;
+use logger::logger;
 
 // Iron
 use iron::prelude::*;
@@ -17,13 +13,6 @@ use library::GlobalLibrary;
 use player::GlobalPlayer;
 
 mod api;
-
-lazy_static! {
-    static ref logger: slog::Logger = slog::Logger::root(
-        slog_term::FullFormat::new(slog_term::PlainSyncDecorator::new(std::io::stdout()))
-            .build().fuse(), o!()
-    );
-}
 
 #[derive(Deserialize, Clone)]
 pub struct HttpConfig {

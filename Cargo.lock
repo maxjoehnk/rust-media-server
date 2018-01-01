@@ -837,6 +837,7 @@ dependencies = [
  "serde_json 1.0.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_mpd 0.1.0",
  "slog 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "slog-async 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "slog-term 2.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "soundcloud 0.1.0 (git+https://github.com/maxjoehnk/soundcloud-rs)",
  "staticfile 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -980,6 +981,16 @@ version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
+name = "slog-async"
+version = "2.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "slog 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "take_mut 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "thread_local 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "slog-term"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1042,6 +1053,11 @@ dependencies = [
 [[package]]
 name = "take"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "take_mut"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -1420,6 +1436,7 @@ dependencies = [
 "checksum slab 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "17b4fcaed89ab08ef143da37bc52adbcc04d4a69014f4c1208d6b51f0c47bc23"
 "checksum slab 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "fdeff4cd9ecff59ec7e3744cbca73dfe5ac35c2aedb2cfba8a1c715a18912e9d"
 "checksum slog 2.1.1 (registry+https://github.com/rust-lang/crates.io-index)" = "0a6b13b17f4225771f7f15cece704a4e68d3a5f31278ed26367f497133398a18"
+"checksum slog-async 2.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5e319a30c08b004618d5f7ca2f2b1dad7b4623ba7fcb1a12846fc3b01e9eaa10"
 "checksum slog-term 2.3.0 (registry+https://github.com/rust-lang/crates.io-index)" = "5bb5d9360b2b279b326824b3b4ca2402ead8a8138f0e5ec1900605c861bb6671"
 "checksum smallvec 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "4c8cbcd6df1e117c2210e13ab5109635ad68a929fcbb8964dc965b76cb5ee013"
 "checksum soundcloud 0.1.0 (git+https://github.com/maxjoehnk/soundcloud-rs)" = "<none>"
@@ -1427,6 +1444,7 @@ dependencies = [
 "checksum syn 0.11.11 (registry+https://github.com/rust-lang/crates.io-index)" = "d3b891b9015c88c576343b9b3e41c2c11a51c219ef067b264bd9c8aa9b441dad"
 "checksum synom 0.11.3 (registry+https://github.com/rust-lang/crates.io-index)" = "a393066ed9010ebaed60b9eafa373d4b1baac186dd7e008555b0f702b51945b6"
 "checksum take 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "b157868d8ac1f56b64604539990685fa7611d8fa9e5476cf0c02cf34d32917c5"
+"checksum take_mut 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "50b910a1174df4aeb5738e8a0e7253883cf7801de40d094175a5a557e487f4c5"
 "checksum tempdir 0.3.5 (registry+https://github.com/rust-lang/crates.io-index)" = "87974a6f5c1dfb344d733055601650059a3363de2a6104819293baff662132d6"
 "checksum term 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "fa63644f74ce96fbeb9b794f66aff2a52d601cbd5e80f4b97123e3899f4570f1"
 "checksum termion 1.5.1 (registry+https://github.com/rust-lang/crates.io-index)" = "689a3bdfaab439fd92bc87df5c4c78417d3cbe537487274e9b0b2dce76e92096"

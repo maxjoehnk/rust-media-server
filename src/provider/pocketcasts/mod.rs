@@ -58,7 +58,7 @@ impl provider::ProviderInstance for PocketcastsProvider {
         }
     }
 
-    fn search(&self, query: String) -> Vec<provider::ProviderItem> {
+    fn search(&self, _query: String) -> Vec<provider::ProviderItem> {
         vec![]
     }
 }

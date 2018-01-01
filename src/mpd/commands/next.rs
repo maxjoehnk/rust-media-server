@@ -13,7 +13,7 @@ impl NextCommand {
 }
 
 impl MpdCommand<()> for NextCommand {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<(), MpdError> {
+    fn handle(&self, player: &GlobalPlayer, _library: &GlobalLibrary) -> Result<(), MpdError> {
         let mut player = player.lock().unwrap();
         player.next();
         Ok(())

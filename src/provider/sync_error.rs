@@ -11,7 +11,7 @@ pub enum SyncError {
 }
 
 impl<T> From<sync::PoisonError<T>> for SyncError {
-    fn from(err: sync::PoisonError<T>) -> SyncError {
+    fn from(_: sync::PoisonError<T>) -> SyncError {
         SyncError::LibraryAccessError
     }
 }

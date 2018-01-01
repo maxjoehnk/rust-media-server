@@ -23,7 +23,7 @@ impl OutputsCommand {
 }
 
 impl MpdCommand<Vec<OutputEntry>> for OutputsCommand {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<Vec<OutputEntry>, MpdError> {
+    fn handle(&self, _player: &GlobalPlayer, _library: &GlobalLibrary) -> Result<Vec<OutputEntry>, MpdError> {
         Ok(vec![
             OutputEntry {
                 id: 0,
