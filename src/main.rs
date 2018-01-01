@@ -31,6 +31,7 @@ mod library;
 mod player;
 mod http;
 mod provider;
+mod jobs;
 
 use provider::ProviderInstance;
 
@@ -51,58 +52,14 @@ lazy_static! {
 }
 
 #[derive(Deserialize, Clone)]
-struct Config {
+pub struct Config {
     mpd: Option<mpd::MpdConfig>,
     http: Option<http::HttpConfig>,
     pocketcasts: Option<provider::pocketcasts::PocketcastsProvider>,
     soundcloud: Option<provider::soundcloud::SoundcloudProvider>
 }
 
-fn main() {
-    gstreamer::init().unwrap();
-    let mut config_file = File::open("config.toml").unwrap();
-    let mut config = String::new();
-    config_file.read_to_string(&mut config).unwrap();
-    let config: Config = toml::from_str(config.as_str()).unwrap();
-
-    let mut threads = vec![];
-
-    let library = Arc::new(Mutex::new(library::Library::new()));
-    if config.pocketcasts.is_some() {
-        let mut provider = config.pocketcasts.unwrap();
-        provider.sync(library.clone()).unwrap();
-    }
-
-    let player = Arc::new(Mutex::new(player::Player::new()));
-
-    {
-        let config = config.mpd.unwrap_or(mpd::MpdConfig {
-            ip: "0.0.0.0".to_owned(),
-            port: 6600
-        });
-
-        let player = player.clone();
-        let library = library.clone();
-
-        let handle = thread::spawn(move|| {
-            mpd::open(config, player, library)
-        });
-        threads.push(handle);
-    }
-
-    {
-        let config = config.http.unwrap_or(http::HttpConfig {
-            ip: "0.0.0.0".to_owned(),
-            port: 8080
-        });
-        let player = player.clone();
-        let library = library.clone();
-        let handle = thread::spawn(move|| {
-            http::open(config, player, library).unwrap();
-        });
-        threads.push(handle);
-    }
-
+fn testing(player: player::GlobalPlayer, library: library::GlobalLibrary) {
     let playlist = library::Playlist {
         title: "Test".to_owned(),
         tracks: vec![],
@@ -125,11 +82,27 @@ fn main() {
         let mut player = player.lock().unwrap();
         player.play();
     }
+}
 
-    {
-        let handle = player::main_loop(player.clone());
-        threads.push(handle);
-    }
+fn main() {
+    gstreamer::init().unwrap();
+    let mut config_file = File::open("config.toml").unwrap();
+    let mut config = String::new();
+    config_file.read_to_string(&mut config).unwrap();
+    let config: Config = toml::from_str(config.as_str()).unwrap();
+
+    let library = Arc::new(Mutex::new(library::Library::new()));
+    let player = Arc::new(Mutex::new(player::Player::new()));
+
+    let threads = vec![
+        jobs::mpd::spawn(config.mpd.clone(), player.clone(), library.clone()),
+        jobs::http::spawn(config.http.clone(), player.clone(), library.clone()),
+        jobs::gst::spawn(player.clone()),
+        jobs::sync::spawn(config.clone(), library.clone())
+    ];
+
+    testing(player.clone(), library.clone());
+
     for handle in threads {
         let _ = handle.join();
     }
