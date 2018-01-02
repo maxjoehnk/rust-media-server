@@ -2,6 +2,7 @@ use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
 use library::GlobalLibrary;
 use player::GlobalPlayer;
+use provider::SharedProviders;
 
 pub struct LoadPlaylistCommand {
     name: String
@@ -16,7 +17,7 @@ impl LoadPlaylistCommand {
 }
 
 impl MpdCommand<()> for LoadPlaylistCommand {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<(), MpdError> {
+    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary, _providers: &SharedProviders) -> Result<(), MpdError> {
         let tracks = library
             .playlists
             .read()

@@ -3,6 +3,8 @@ use mpd::commands::MpdCommand;
 use library::GlobalLibrary;
 use player::GlobalPlayer;
 use mpd::commands::list_playlists::PlaylistEntry;
+use mpd::song::MpdSong;
+use provider::{SharedProviders, Explorer, ProviderFolder};
 
 #[derive(Serialize)]
 pub struct PathItem {
@@ -32,23 +34,40 @@ impl ListInfoCommand {
     }
 }
 
-impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>)> for ListInfoCommand {
-    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary) -> Result<(Vec<PathItem>, Vec<PlaylistEntry>), MpdError> {
+impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>)> for ListInfoCommand {
+    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary, providers: &SharedProviders) -> Result<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>), MpdError> {
         match self.path {
             None => {
-                let folders = vec![
-                    PathItem {
-                        directory: String::from("Pocketcasts")
-                    },
-                    PathItem {
-                        directory: String::from("Soundcloud")
-                    }
-                ];
+                let explorer = Explorer::new(providers.to_vec());
+                let folders = explorer
+                    .items()
+                    .unwrap()
+                    .folders
+                    .iter()
+                    .map(|folder| {
+                        PathItem {
+                            directory: folder.clone().label
+                        }
+                    })
+                    .collect();
                 let playlists = self.get_playlists(library);
-                Ok((folders, playlists))
+                Ok((folders, playlists, vec![]))
             },
             Some(ref path) => {
-                Ok((vec![], vec![]))
+                let mut explorer = Explorer::new(providers.to_vec());
+                explorer.navigate_absolute(path.to_owned());
+                let path = explorer.path();
+                let folders = explorer.items()
+                    .unwrap()
+                    .folders
+                    .iter()
+                    .map(|folder| {
+                        PathItem {
+                            directory: format!("{}/{}", path, folder.label)
+                        }
+                    })
+                    .collect();
+                Ok((folders, vec![], vec![]))
             }
         }
     }

@@ -16,6 +16,10 @@ pub struct PocketcastsProvider {
 }
 
 impl provider::ProviderInstance for PocketcastsProvider {
+    fn title(&self) -> &'static str {
+        "Pocketcasts"
+    }
+
     fn sync(&mut self, library: GlobalLibrary) -> Result<usize, provider::SyncError> {
         let podcasts = self.user.get_subscriptions();
         let mut episodes: Vec<Track> = podcasts

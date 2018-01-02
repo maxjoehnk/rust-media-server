@@ -2,6 +2,7 @@ use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
 use library::{GlobalLibrary, Track};
 use player::GlobalPlayer;
+use provider::SharedProviders;
 
 #[derive(Debug, Serialize)]
 pub struct PlaylistItem {
@@ -29,7 +30,7 @@ impl ListPlaylistCommand {
 }
 
 impl MpdCommand<Vec<PlaylistItem>> for ListPlaylistCommand {
-    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary) -> Result<Vec<PlaylistItem>, MpdError> {
+    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary, _providers: &SharedProviders) -> Result<Vec<PlaylistItem>, MpdError> {
         let playlists = library
             .playlists
             .read()

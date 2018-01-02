@@ -76,11 +76,21 @@ fn main() {
     let library = Arc::new(library::Library::new());
     let player = Arc::new(Mutex::new(player::Player::new()));
 
+    let mut providers: provider::SharedProviders = vec![];
+    {
+        if config.pocketcasts.is_some() {
+            providers.push(Arc::new(Mutex::new(Box::new(config.pocketcasts.unwrap()))));
+        }
+        if config.soundcloud.is_some() {
+            providers.push(Arc::new(Mutex::new(Box::new(config.soundcloud.unwrap()))));
+        }
+    }
+
     let threads = vec![
-        jobs::mpd::spawn(config.mpd.clone(), player.clone(), library.clone()),
+        jobs::mpd::spawn(config.mpd.clone(), player.clone(), library.clone(), providers.clone()),
         jobs::http::spawn(config.http.clone(), player.clone(), library.clone()),
         jobs::gst::spawn(player.clone()),
-        jobs::sync::spawn(config.clone(), library.clone())
+        jobs::sync::spawn(providers.clone(), library.clone())
     ];
 
     testing(player.clone(), library.clone());

@@ -2,6 +2,7 @@ use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
 use library::GlobalLibrary;
 use player::GlobalPlayer;
+use provider::SharedProviders;
 
 #[derive(Debug, Serialize)]
 pub struct OutputEntry {
@@ -23,7 +24,7 @@ impl OutputsCommand {
 }
 
 impl MpdCommand<Vec<OutputEntry>> for OutputsCommand {
-    fn handle(&self, _player: &GlobalPlayer, _library: &GlobalLibrary) -> Result<Vec<OutputEntry>, MpdError> {
+    fn handle(&self, _player: &GlobalPlayer, _library: &GlobalLibrary, _providers: &SharedProviders) -> Result<Vec<OutputEntry>, MpdError> {
         Ok(vec![
             OutputEntry {
                 id: 0,

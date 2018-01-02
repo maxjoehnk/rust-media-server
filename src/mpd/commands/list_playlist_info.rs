@@ -3,6 +3,7 @@ use mpd::commands::MpdCommand;
 use mpd::song::MpdSong;
 use library::GlobalLibrary;
 use player::GlobalPlayer;
+use provider::SharedProviders;
 
 pub struct ListPlaylistInfoCommand {
     name: String
@@ -17,7 +18,7 @@ impl ListPlaylistInfoCommand {
 }
 
 impl MpdCommand<Vec<MpdSong>> for ListPlaylistInfoCommand {
-    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary) -> Result<Vec<MpdSong>, MpdError> {
+    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary, _providers: &SharedProviders) -> Result<Vec<MpdSong>, MpdError> {
         let playlists = library
             .playlists
             .read()

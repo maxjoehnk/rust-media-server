@@ -1,6 +1,7 @@
 use mpd::error::MpdError;
 use library::GlobalLibrary;
 use player::GlobalPlayer;
+use provider::SharedProviders;
 
 mod current_song;
 mod list_artist;
@@ -31,5 +32,5 @@ pub use self::status::StatusCommand;
 pub use self::stop::StopCommand;
 
 pub trait MpdCommand<T> {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<T, MpdError>;
+    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary, providers: &SharedProviders) -> Result<T, MpdError>;
 }

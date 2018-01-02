@@ -10,6 +10,10 @@ pub struct SoundcloudProvider {
 }
 
 impl provider::ProviderInstance for SoundcloudProvider {
+    fn title(&self) -> &'static str {
+        "Soundcloud"
+    }
+
     fn sync(&mut self, _library: GlobalLibrary) -> Result<usize, provider::SyncError> {
         Ok(0)
     }
