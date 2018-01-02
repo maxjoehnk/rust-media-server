@@ -14,6 +14,7 @@ use player::GlobalPlayer;
 
 mod api;
 
+
 #[derive(Deserialize, Clone)]
 pub struct HttpConfig {
     pub ip: String,

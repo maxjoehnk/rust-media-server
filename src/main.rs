@@ -49,23 +49,13 @@ pub struct Config {
 }
 
 fn testing(player: player::GlobalPlayer, library: library::GlobalLibrary) {
-    let playlist = library::Playlist {
+    let mut playlist = library::Playlist {
         id: None,
         title: "Test".to_owned(),
         tracks: vec![],
         provider: provider::Provider::LocalMedia
     };
-    {
-        library.playlists.write().unwrap().push(playlist);
-    }
-
-    {
-        std::thread::sleep(std::time::Duration::from_secs(2)); // wait for sync
-        let mut player = player.lock().unwrap();
-        let tracks = library
-            .search("Friendly Sessions");
-        player.queue.add_multiple(tracks);
-    }
+    library.add_playlist(&mut playlist);
 
     {
         let mut player = player.lock().unwrap();

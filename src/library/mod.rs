@@ -6,7 +6,7 @@ mod track;
 
 use std::sync::Arc;
 
-pub use self::album::{Album, AlbumModel};
+pub use self::album::Album;
 pub use self::artist::Artist;
 pub use self::library::Library;
 pub use self::playlist::Playlist;

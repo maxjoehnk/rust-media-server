@@ -1,18 +1,10 @@
-mod list_albums;
-mod list_artists;
-mod list_playlists;
-mod list_tracks;
-mod pause_player;
+mod handler;
+mod viewmodels;
 
 use library::GlobalLibrary;
 use player::GlobalPlayer;
 use router::Router;
-
-use self::list_albums::ListAlbumsHandler;
-use self::list_artists::ListArtistsHandler;
-use self::list_playlists::ListPlaylistsHandler;
-use self::list_tracks::ListTracksHandler;
-use self::pause_player::PausePlayerHandler;
+use self::handler::*;
 
 pub fn build(player: GlobalPlayer, library: GlobalLibrary) -> Router {
     router!(

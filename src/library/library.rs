@@ -50,6 +50,15 @@ impl Library {
             .find(|album| album.id == Some(*id))
     }
 
+    pub fn get_artist(&self, id: &usize) -> Option<Artist> {
+        self.artists
+            .read()
+            .unwrap()
+            .iter()
+            .cloned()
+            .find(|artist| artist.id == Some(*id))
+    }
+
     pub fn add_tracks(&self, tracks: &mut Vec<Track>) {
         let tracks = tracks
             .iter()
@@ -80,6 +89,11 @@ impl Library {
     pub fn add_artist(&self, artist: &mut Artist) {
         artist.id = Some(self.artist_id.fetch_add(1, Ordering::Relaxed));
         self.artists.write().unwrap().push(artist.clone());
+    }
+
+    pub fn add_playlist(&self, playlist: &mut Playlist) {
+        playlist.id = Some(self.playlist_id.fetch_add(1, Ordering::Relaxed));
+        self.playlists.write().unwrap().push(playlist.clone());
     }
 
     pub fn search(&self, query: &'static str) -> Vec<Track> {

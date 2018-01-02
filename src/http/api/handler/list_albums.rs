@@ -2,7 +2,8 @@ use iron::prelude::*;
 use iron::status;
 use iron::Handler;
 
-use library::{GlobalLibrary, AlbumModel};
+use library::GlobalLibrary;
+use http::api::viewmodels::AlbumModel;
 
 use serde_json;
 
