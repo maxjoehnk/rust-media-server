@@ -17,16 +17,21 @@ impl LoadPlaylistCommand {
 
 impl MpdCommand<()> for LoadPlaylistCommand {
     fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary) -> Result<(), MpdError> {
-        let playlist = library
-            .lock()
-            .unwrap()
+        let tracks = library
             .playlists
+            .read()
+            .unwrap()
             .iter()
             .find(|playlist| playlist.title == self.name)
             .unwrap()
-            .clone();
+            .tracks
+            .iter()
+            .map(|id| library.get_track(id))
+            .filter(|track| track.is_some())
+            .map(|track| track.unwrap())
+            .collect();
         let mut player = player.lock().unwrap();
-        player.queue.add_playlist(playlist);
+        player.queue.add_multiple(tracks);
         Ok(())
     }
 }

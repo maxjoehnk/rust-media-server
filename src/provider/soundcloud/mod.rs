@@ -10,8 +10,8 @@ pub struct SoundcloudProvider {
 }
 
 impl provider::ProviderInstance for SoundcloudProvider {
-    fn sync(&mut self, _library: GlobalLibrary) -> Result<(), provider::SyncError> {
-        Ok(())
+    fn sync(&mut self, _library: GlobalLibrary) -> Result<usize, provider::SyncError> {
+        Ok(0)
     }
     fn root(&self) -> provider::ProviderFolder {
         provider::ProviderFolder::empty("Soundcloud".to_owned())

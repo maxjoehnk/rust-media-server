@@ -3,8 +3,6 @@ use provider::Provider;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PocketcastEpisode<> {
-    #[serde(skip)]
-    //pub podcast: PocketcastPodcast,
     pub uuid: String,
     pub size: i32,
     pub title: String,
@@ -12,14 +10,16 @@ pub struct PocketcastEpisode<> {
     //pub duration: String
 }
 
-impl PocketcastEpisode {
-    pub fn to_track(&self) -> Track {
+impl From<PocketcastEpisode> for Track {
+    fn from(episode: PocketcastEpisode) -> Track {
         Track {
-            title: self.title.clone(),
-            artist: None,
-            album: None,//Some(self.podcast.to_album()),
-            url: self.url.clone(),
-            provider: Provider::Pocketcasts
+            id: None,
+            title: episode.title,
+            artist_id: None,
+            album_id: None,
+            stream_url: episode.url,
+            provider: Provider::Pocketcasts,
+            path: format!("pocketcasts:{}", episode.uuid)
         }
     }
 }

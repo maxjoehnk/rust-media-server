@@ -20,7 +20,7 @@ pub enum Provider {
 }
 
 pub trait ProviderInstance {
-    fn sync(&mut self, library: GlobalLibrary) -> Result<(), SyncError>;
+    fn sync(&mut self, library: GlobalLibrary) -> Result<usize, SyncError>;
     fn root(&self) -> ProviderFolder;
     fn search(&self, query: String) -> Vec<ProviderItem>;
 }

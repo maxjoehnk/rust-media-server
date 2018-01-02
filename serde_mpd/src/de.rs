@@ -88,16 +88,31 @@ impl<'de> Deserializer<'de> {
 
     // Parse an escaped String
     fn parse_string(&mut self) -> Result<&'de str> {
-        if self.next_char()? != '"' {
-            return Err(Error::ExpectedString);
-        }
-        match self.input.find('"') {
-            Some(len) => {
-                let s = &self.input[..len];
-                self.input = &self.input[len + 1..];
-                Ok(s)
-            }
-            None => Err(Error::Eof),
+        match self.peek_char()? {
+            '"' => {
+                self.next_char()?;
+                match self.input.find('"') {
+                    Some(len) => {
+                        let s = &self.input[..len];
+                        self.input = &self.input[len + 1..];
+                        Ok(s)
+                    },
+                    None => Err(Error::Eof),
+                }
+            },
+            _ => match self.input.find(' ') {
+                Some(len) => {
+                    let s = &self.input[..len];
+                    self.input = &self.input[len + 1..];
+                    Ok(s)
+                },
+                None => {
+                    let s = self.input;
+                    self.input = "";
+                    Ok(s)
+                }
+            },
+            ' ' => Err(Error::ExpectedString),
         }
     }
 
@@ -464,4 +479,8 @@ fn test_string_command() {
     let r = "listplaylist \"test\"";
     let expected = Commands::ListPlaylist(String::from("test"));
     assert_eq!(expected, from_str(r).unwrap());
+
+    let s = "listplaylist tet";
+    let expected = Commands::ListPlaylist(String::from("tet"));
+    assert_eq!(expected, from_str(s).unwrap());
 }

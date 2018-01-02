@@ -1,11 +1,12 @@
-use library::{Album, Artist};
 use provider::Provider;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct Track {
+    pub id: Option<usize>,
     pub title: String,
-    pub artist: Option<Artist>,
-    pub album: Option<Album>,
-    pub url: String,
-    pub provider: Provider
+    pub artist_id: Option<usize>,
+    pub album_id: Option<usize>,
+    pub stream_url: String,
+    pub provider: Provider,
+    pub path: String
 }

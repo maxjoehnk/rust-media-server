@@ -18,16 +18,20 @@ impl ListPlaylistInfoCommand {
 
 impl MpdCommand<Vec<MpdSong>> for ListPlaylistInfoCommand {
     fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary) -> Result<Vec<MpdSong>, MpdError> {
-        let library = library.lock().unwrap();
-        let playlist = library
+        let playlists = library
             .playlists
+            .read()
+            .unwrap();
+        let playlist = playlists
             .iter()
             .find(|playlist| playlist.title == self.name);
         match playlist {
             Some(playlist) => {
                 let tracks = playlist.tracks
                     .iter()
-                    .cloned()
+                    .map(|id| library.get_track(id))
+                    .filter(|track| track.is_some())
+                    .map(|track| track.unwrap())
                     .map(MpdSong::from)
                     .collect();
                 Ok(tracks)

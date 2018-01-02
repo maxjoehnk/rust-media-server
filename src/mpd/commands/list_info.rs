@@ -21,9 +21,10 @@ impl ListInfoCommand {
     }
 
     fn get_playlists(&self, library: &GlobalLibrary) -> Vec<PlaylistEntry> {
-        library.lock()
-            .unwrap()
+        library
             .playlists
+            .read()
+            .unwrap()
             .iter()
             .cloned()
             .map(PlaylistEntry::from)

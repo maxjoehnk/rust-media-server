@@ -4,12 +4,12 @@ mod library;
 mod playlist;
 mod track;
 
-use std::sync::{Mutex, Arc};
+use std::sync::Arc;
 
-pub use self::album::Album;
+pub use self::album::{Album, AlbumModel};
 pub use self::artist::Artist;
 pub use self::library::Library;
 pub use self::playlist::Playlist;
 pub use self::track::Track;
 
-pub type GlobalLibrary = Arc<Mutex<Library>>;
+pub type GlobalLibrary = Arc<Library>;

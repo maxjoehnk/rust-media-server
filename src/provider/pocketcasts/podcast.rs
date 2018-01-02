@@ -1,5 +1,5 @@
 use provider::pocketcasts::{PocketcastEpisode, PocketcastUser};
-use library::Album;
+use library::{Album, Artist};
 use reqwest::Client;
 use reqwest::header;
 use provider::Provider;
@@ -47,14 +47,24 @@ impl PocketcastPodcast {
 
         Some(episodes)
     }
+}
 
-    pub fn to_album(&self) -> Album {
-        let tracks = self.episodes.clone().iter().map(|episode| episode.to_track()).collect();
+impl From<PocketcastPodcast> for Album {
+    fn from(podcast: PocketcastPodcast) -> Album {
         Album {
-            title: self.title.clone(),
-            artist: None,
-            tracks,
+            id: None,
+            title: podcast.title,
+            artist_id: None,
             provider: Provider::Pocketcasts
+        }
+    }
+}
+
+impl From<PocketcastPodcast> for Artist {
+    fn from(podcast: PocketcastPodcast) -> Artist {
+        Artist {
+            id: None,
+            name: podcast.author
         }
     }
 }

@@ -3,7 +3,7 @@ mod podcast;
 mod user;
 
 use provider;
-use library::{Track, GlobalLibrary};
+use library::{Track, GlobalLibrary, Album, Artist};
 use rayon::prelude::*;
 
 pub use self::podcast::PocketcastPodcast;
@@ -16,27 +16,40 @@ pub struct PocketcastsProvider {
 }
 
 impl provider::ProviderInstance for PocketcastsProvider {
-    fn sync(&mut self, library: GlobalLibrary) -> Result<(), provider::SyncError> {
-        let mut podcasts = self.user.get_subscriptions();
+    fn sync(&mut self, library: GlobalLibrary) -> Result<usize, provider::SyncError> {
+        let podcasts = self.user.get_subscriptions();
         let mut episodes: Vec<Track> = podcasts
-            .par_iter_mut()
-            .map(|podcast| {
-                podcast.get_episodes(&self.user).unwrap()
+            .par_iter()
+            .cloned()
+            .map(|mut podcast| {
+                let episodes = podcast.get_episodes(&self.user).unwrap();
+                (podcast, episodes)
             })
-            .reduce(|| vec![], |mut a, mut b| {
-                a.append(&mut b);
+            .map(|(podcast, episodes)| {
+                let mut artist = Artist::from(podcast.clone());
+                let mut album = Album::from(podcast);
+                library.add_artist(&mut artist);
+                album.artist_id = artist.id.clone();
+                library.add_album(&mut album);
+                let tracks: Vec<Track> = episodes
+                    .iter()
+                    .cloned()
+                    .map(Track::from)
+                    .map(|mut track| {
+                        track.album_id = album.id.clone();
+                        track.artist_id = artist.id.clone();
+                        track
+                    })
+                    .collect();
+                tracks
+            })
+            .reduce(|| vec![], |mut a, b| {
+                a.extend(b);
                 a
-            })
-            .iter()
-            .map(|episode| episode.to_track())
-            .collect();
-        let mut library = library.lock()?;
+            });
+        let amount = episodes.len();
         library.add_tracks(&mut episodes);
-        let mut albums = podcasts.par_iter()
-            .map(|podcast| podcast.to_album())
-            .collect();
-        library.add_albums(&mut albums);
-        Ok(())
+        Ok(amount)
     }
 
     fn root(&self) -> provider::ProviderFolder {
@@ -50,7 +63,8 @@ impl provider::ProviderInstance for PocketcastsProvider {
                         .get_subscriptions()
                         .iter()
                         .cloned()
-                        .map(|podcast| podcast.to_album().into())
+                        .map(Album::from)
+                        .map(provider::ProviderItem::from)
                         .collect()
                 }
             ],

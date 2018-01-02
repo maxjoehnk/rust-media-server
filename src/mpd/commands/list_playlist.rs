@@ -11,7 +11,7 @@ pub struct PlaylistItem {
 impl From<Track> for PlaylistItem {
     fn from(track: Track) -> PlaylistItem {
         PlaylistItem {
-            file: track.url
+            file: track.path
         }
     }
 }
@@ -30,16 +30,20 @@ impl ListPlaylistCommand {
 
 impl MpdCommand<Vec<PlaylistItem>> for ListPlaylistCommand {
     fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary) -> Result<Vec<PlaylistItem>, MpdError> {
-        let library = library.lock().unwrap();
-        let playlist = library
+        let playlists = library
             .playlists
+            .read()
+            .unwrap();
+        let playlist = playlists
             .iter()
             .find(|playlist| playlist.title == self.name);
         match playlist {
             Some(playlist) => {
                 let tracks = playlist.tracks
                     .iter()
-                    .cloned()
+                    .map(|id| library.get_track(id))
+                    .filter(|track| track.is_some())
+                    .map(|track| track.unwrap())
                     .map(PlaylistItem::from)
                     .collect();
                 Ok(tracks)

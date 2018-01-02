@@ -30,9 +30,10 @@ impl ListPlaylistsCommand {
 
 impl MpdCommand<Vec<PlaylistEntry>> for ListPlaylistsCommand {
     fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary) -> Result<Vec<PlaylistEntry>, MpdError> {
-        let playlists = library.lock()
-            .unwrap()
+        let playlists = library
             .playlists
+            .read()
+            .unwrap()
             .iter()
             .cloned()
             .map(PlaylistEntry::from)

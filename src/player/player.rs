@@ -126,7 +126,7 @@ impl GstBackend {
     fn set_track(&self, track: &Track, state: PlayerState) {
         println!("Selecting {:?}", track);
         self.pipeline.set_state(gst::State::Null);
-        self.decoder.set_property_from_str("uri", track.url.as_str());
+        self.decoder.set_property_from_str("uri", track.stream_url.as_str());
 
         let ret = self.pipeline.set_state(state.into());
 

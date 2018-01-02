@@ -20,8 +20,7 @@ impl ListPlaylistsHandler {
 
 impl Handler for ListPlaylistsHandler {
     fn handle(&self, _: &mut Request) -> IronResult<Response> {
-        let library = self.library.lock().unwrap();
-        let res = serde_json::to_string(&library.playlists).unwrap();
+        let res = serde_json::to_string(&self.library.playlists).unwrap();
 
         Ok(Response::with((mime!(Application/Json), status::Ok, res)))
     }

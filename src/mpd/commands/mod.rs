@@ -3,6 +3,7 @@ use library::GlobalLibrary;
 use player::GlobalPlayer;
 
 mod current_song;
+mod list_artist;
 mod list_info;
 mod list_playlist;
 mod list_playlist_info;
@@ -16,6 +17,7 @@ mod status;
 mod stop;
 
 pub use self::current_song::CurrentSongCommand;
+pub use self::list_artist::ListArtistCommand;
 pub use self::list_info::ListInfoCommand;
 pub use self::list_playlist::ListPlaylistCommand;
 pub use self::list_playlist_info::ListPlaylistInfoCommand;

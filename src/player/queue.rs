@@ -1,4 +1,4 @@
-use library::{Track, Playlist};
+use library::Track;
 
 #[derive(Debug, Clone)]
 pub struct Queue {
@@ -12,10 +12,6 @@ impl Queue {
             tracks: vec![],
             current: Some(0)
         }
-    }
-
-    pub fn add_playlist(&mut self, playlist: Playlist) {
-        self.tracks.append(&mut playlist.tracks.to_vec());
     }
 
     pub fn add_track(&mut self, track: Track) {

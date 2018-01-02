@@ -50,18 +50,17 @@ pub struct Config {
 
 fn testing(player: player::GlobalPlayer, library: library::GlobalLibrary) {
     let playlist = library::Playlist {
+        id: None,
         title: "Test".to_owned(),
         tracks: vec![],
         provider: provider::Provider::LocalMedia
     };
     {
-        let mut library = library.lock().unwrap();
-        library.playlists.push(playlist);
+        library.playlists.write().unwrap().push(playlist);
     }
 
     {
         std::thread::sleep(std::time::Duration::from_secs(2)); // wait for sync
-        let library = library.lock().unwrap();
         let mut player = player.lock().unwrap();
         let tracks = library
             .search("Friendly Sessions");
@@ -84,7 +83,7 @@ fn read_config() -> Config {
 fn main() {
     gstreamer::init().unwrap();
     let config = read_config();
-    let library = Arc::new(Mutex::new(library::Library::new()));
+    let library = Arc::new(library::Library::new());
     let player = Arc::new(Mutex::new(player::Player::new()));
 
     let threads = vec![
@@ -93,8 +92,6 @@ fn main() {
         jobs::gst::spawn(player.clone()),
         jobs::sync::spawn(config.clone(), library.clone())
     ];
-
-    println!("after thread spawn");
 
     testing(player.clone(), library.clone());
 

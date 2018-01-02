@@ -130,7 +130,9 @@ enum MpdCommands {
     #[serde(rename = "previous")]
     Previous,
     #[serde(rename = "stop")]
-    Stop
+    Stop,
+    #[serde(rename = "list")]
+    List(String)
 }
 
 fn parse_single(line: String) -> Result<MpdCommands, serde_mpd::Error> {
@@ -163,6 +165,8 @@ fn handle_mpd_command(cmd: MpdCommands, player: &GlobalPlayer, library: &GlobalL
         MpdCommands::Next => commands::NextCommand::new().handle(player, library)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::Outputs => commands::OutputsCommand::new().handle(player, library)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::List(ref t) if t == "Artist" => commands::ListArtistCommand::new().handle(player, library)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::CommandList(commands) => {
             let mut result = String::new();

@@ -12,11 +12,13 @@ pub struct SoundcloudTrack {
 impl From<SoundcloudTrack> for Track {
     fn from(track: SoundcloudTrack) -> Track {
         Track {
+            id: None,
             title: track.title,
-            artist: None,
-            album: None,
-            url: track.url,
-            provider: provider::Provider::Soundcloud
+            artist_id: None,
+            album_id: None,
+            stream_url: track.url,
+            provider: provider::Provider::Soundcloud,
+            path: format!("soundcloud:{}", track.id)
         }
     }
 }

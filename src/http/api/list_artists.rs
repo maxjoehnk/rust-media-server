@@ -20,8 +20,7 @@ impl ListArtistsHandler  {
 
 impl Handler for ListArtistsHandler  {
     fn handle(&self, _: &mut Request) -> IronResult<Response> {
-        let library = self.library.lock().unwrap();
-        let res = serde_json::to_string(&library.artists).unwrap();
+        let res = serde_json::to_string(&self.library.artists).unwrap();
 
         Ok(Response::with((mime!(Application/Json), status::Ok, res)))
     }

@@ -8,36 +8,29 @@ use logger::logger;
 pub fn spawn(config: Config, library: GlobalLibrary) -> thread::JoinHandle<()> {
     thread::spawn(move|| {
         loop {
-            let threads = vec![
-                spawn_pocketcasts(config.clone(), library.clone()),
-                spawn_soundcloud(config.clone(), library.clone())
-            ];
-            for handle in threads {
-                let _ = handle.join();
-            }
+            sync_pocketcasts(config.clone(), library.clone());
+            sync_soundcloud(config.clone(), library.clone());
             thread::sleep(Duration::from_secs(5 * 60));
         }
     })
 }
 
-fn spawn_pocketcasts(config: Config, library: GlobalLibrary) -> thread::JoinHandle<()> {
-    thread::spawn(move|| {
-        let pocketcasts = config.pocketcasts.clone();
-        if pocketcasts.is_some() {
-            let mut provider = pocketcasts.unwrap();
-            info!(logger, "[SYNC] Syncing Pocketcasts Library");
-            provider.sync(library).unwrap();
-        }
-    })
+fn sync_pocketcasts(config: Config, library: GlobalLibrary) {
+    let pocketcasts = config.pocketcasts.clone();
+    if pocketcasts.is_some() {
+        let mut provider = pocketcasts.unwrap();
+        info!(logger, "[SYNC] Syncing Pocketcasts library");
+        let tracks = provider.sync(library).unwrap();
+        info!(logger, "[SYNC] Synced {} tracks from Pocketcasts", tracks);
+    }
 }
 
-fn spawn_soundcloud(config: Config, library: GlobalLibrary) -> thread::JoinHandle<()> {
-    thread::spawn(move|| {
-        let soundcloud = config.soundcloud.clone();
-        if soundcloud.is_some() {
-            let mut provider = soundcloud.unwrap();
-            info!(logger, "[SYNC] Syncing Soundcloud Library");
-            provider.sync(library).unwrap();
-        }
-    })
+fn sync_soundcloud(config: Config, library: GlobalLibrary) {
+    let soundcloud = config.soundcloud.clone();
+    if soundcloud.is_some() {
+        let mut provider = soundcloud.unwrap();
+        info!(logger, "[SYNC] Syncing Soundcloud library");
+        let tracks = provider.sync(library).unwrap();
+        info!(logger, "[SYNC] Synced {} tracks from Soundcloud", tracks);
+    }
 }
