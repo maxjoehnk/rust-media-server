@@ -1,4 +1,3 @@
-use super::super::Config;
 use std::thread;
 use std::time::Duration;
 use library::GlobalLibrary;

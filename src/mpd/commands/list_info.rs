@@ -63,7 +63,7 @@ impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>)> for ListInfoC
                     .iter()
                     .map(|folder| {
                         PathItem {
-                            directory: format!("{}/{}", path, folder.label)
+                            directory: format!("{}{}", path, folder.label)
                         }
                     })
                     .collect();

@@ -23,7 +23,11 @@ impl Explorer {
                     current = &path[index + 1..];
                     layer
                 },
-                None => current
+                None => {
+                    let copy = current.clone();
+                    current = "";
+                    copy
+                }
             };
             absolute.push(layer.to_owned());
         }
@@ -42,7 +46,7 @@ impl Explorer {
         self.path
             .iter()
             .fold(String::new(), |mut a, b| {
-                a.push_str(format!("/{}", b).as_str());
+                a.push_str(format!("{}/", b).as_str());
                 a
             })
     }
@@ -65,8 +69,7 @@ impl Explorer {
             0 => Ok(root),
             _ => {
                 let mut folder = Some(root);
-                let mut path = self.path.clone();
-                path.reverse();
+                let path = self.path.clone();
                 for item in path {
                     folder = folder.ok_or(())?
                         .folders

@@ -71,6 +71,21 @@ impl provider::ProviderInstance for PocketcastsProvider {
                         .map(Album::from)
                         .map(provider::ProviderItem::from)
                         .collect()
+                },
+                provider::ProviderFolder {
+                    label: "Top Charts".to_owned(),
+                    folders: vec![],
+                    items: vec![]
+                },
+                provider::ProviderFolder {
+                    label: "Featured".to_owned(),
+                    folders: vec![],
+                    items: vec![]
+                },
+                provider::ProviderFolder {
+                    label: "Trending".to_owned(),
+                    folders: vec![],
+                    items: vec![]
                 }
             ],
             items: vec![]
