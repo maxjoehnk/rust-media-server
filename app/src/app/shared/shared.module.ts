@@ -2,9 +2,12 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { FlexLayoutModule } from '@angular/flex-layout';
-import { MatButtonModule, MatSidenavModule } from '@angular/material';
+import {
+    MatButtonModule, MatCardModule, MatGridListModule, MatIconModule, MatListModule,
+    MatSidenavModule
+} from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { MatListModule } from '@angular/material';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
     imports: [
@@ -14,15 +17,23 @@ import { MatListModule } from '@angular/material';
         MatSidenavModule,
         MatListModule,
         MatButtonModule,
-        FlexLayoutModule
+        MatGridListModule,
+        MatCardModule,
+        MatIconModule,
+        FlexLayoutModule,
+        HttpClientModule
     ],
     exports: [
         BrowserAnimationsModule,
         MatToolbarModule,
         MatSidenavModule,
         MatListModule,
+        MatGridListModule,
         MatButtonModule,
-        FlexLayoutModule
+        MatCardModule,
+        MatIconModule,
+        FlexLayoutModule,
+        HttpClientModule
     ]
 })
 export class SharedModule {

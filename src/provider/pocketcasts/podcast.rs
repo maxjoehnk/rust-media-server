@@ -55,7 +55,8 @@ impl From<PocketcastPodcast> for Album {
             id: None,
             title: podcast.title,
             artist_id: None,
-            provider: Provider::Pocketcasts
+            provider: Provider::Pocketcasts,
+            coverart: podcast.thumbnail_url
         }
     }
 }

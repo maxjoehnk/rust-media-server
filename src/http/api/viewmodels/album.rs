@@ -7,7 +7,8 @@ pub struct AlbumModel {
     pub title: String,
     pub artist: Option<Artist>,
     pub tracks: Vec<Track>,
-    pub provider: Provider
+    pub provider: Provider,
+    pub coverart: Option<String>
 }
 
 impl AlbumModel {
@@ -28,7 +29,8 @@ impl AlbumModel {
             title: album.title,
             artist,
             tracks,
-            provider: album.provider
+            provider: album.provider,
+            coverart: album.coverart
         }
     }
 }

@@ -13,6 +13,7 @@ import { HeaderComponent } from './header/header.component';
 import { SharedModule } from './shared/shared.module';
 import { PlayerModule } from './player/player.module';
 import { LibraryModule } from './library/library.module';
+import { QueueService } from './queue.service';
 
 @NgModule({
     declarations: [
@@ -30,7 +31,9 @@ import { LibraryModule } from './library/library.module';
         PlayerModule,
         LibraryModule
     ],
-    providers: [],
+    providers: [
+        QueueService
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule {

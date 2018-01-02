@@ -1,0 +1,5 @@
+<div fxLayout="row" fxLayoutWrap fxLayoutAlign="center start">
+    <a *ngFor="let album of albums$ | async" [routerLink]="['/library/albums', album.id]">
+        <img [src]="album.coverart">
+    </a>
+</div>

@@ -2,7 +2,7 @@ use library::Track;
 
 #[derive(Debug, Clone)]
 pub struct Queue {
-    tracks: Vec<Track>,
+    pub tracks: Vec<Track>,
     current: Option<i64>
 }
 

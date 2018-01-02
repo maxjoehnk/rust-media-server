@@ -6,7 +6,7 @@ use std::time::Duration;
 use gstreamer::prelude::*;
 use library::Track;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum PlayerState {
     #[serde(rename = "play")]
     Play,
@@ -44,13 +44,22 @@ impl Player {
     }
 
     pub fn play(&mut self) {
-        let current = self.queue.current();
-        match current {
-            Some(track) => {
-                self.state = PlayerState::Play;
-                self.select_track(&track);
+        match self.state {
+            PlayerState::Stop => {
+                let current = self.queue.current();
+                match current {
+                    Some(track) => {
+                        self.state = PlayerState::Play;
+                        self.select_track(&track);
+                    },
+                    None => {}
+                }
             },
-            None => {}
+            PlayerState::Pause => {
+                self.state = PlayerState::Play;
+                self.backend.play();
+            },
+            _ => {}
         }
     }
 
@@ -131,6 +140,10 @@ impl GstBackend {
         let ret = self.pipeline.set_state(state.into());
 
         assert_ne!(ret, gst::StateChangeReturn::Failure);
+    }
+
+    fn play(&self) {
+        self.pipeline.set_state(gst::State::Playing);
     }
 
     fn pause(&self) {

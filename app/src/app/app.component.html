@@ -1,13 +1,22 @@
-<rms-header></rms-header>
+<rms-header (toggle-sidenav)="sidenav.toggle()"></rms-header>
 <mat-sidenav-container>
-    <mat-sidenav mode="side" opened="true" #sidenav="matSidenav">
-        <mat-list>
-            <mat-list-item>Library</mat-list-item>
-            <mat-list-item>Playlists</mat-list-item>
-        </mat-list>
+    <mat-sidenav [mode]="sidebarMode$ | async" #sidenav="matSidenav">
+        <mat-nav-list>
+            <a mat-list-item routerLink="library">
+                <mat-icon>
+                    <i class="mdi mdi-library-music"></i>
+                </mat-icon>
+                Library
+            </a>
+            <mat-list-item>
+                <mat-icon>
+                    <i class="mdi mdi-playlist-play"></i>
+                </mat-icon>
+                Playlists
+            </mat-list-item>
+        </mat-nav-list>
     </mat-sidenav>
     <mat-sidenav-content>
-        <button (click)="sidenav.toggle()">Toggle</button>
         <router-outlet></router-outlet>
     </mat-sidenav-content>
 </mat-sidenav-container>
