@@ -8,7 +8,7 @@ const GET_EPISODES_URI: &'static str = "https://play.pocketcasts.com/web/episode
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PocketcastPodcast {
-    id: i32,
+    id: Option<i32>,
     pub uuid: String,
     pub title: String,
     pub author: String,
@@ -20,7 +20,7 @@ pub struct PocketcastPodcast {
 }
 
 impl PocketcastPodcast {
-    pub fn get_episodes(&mut self, user: &PocketcastUser) -> Option<Vec<PocketcastEpisode>> {
+    pub fn get_episodes(&self, user: &PocketcastUser) -> Option<Vec<PocketcastEpisode>> {
         let body = json!({
             "uuid": self.uuid,
             "page": 1
@@ -43,7 +43,7 @@ impl PocketcastPodcast {
 
         let episodes = res.result.episodes;
 
-        self.episodes = episodes.clone();
+        //self.episodes = episodes.clone();
 
         Some(episodes)
     }

@@ -1,10 +1,15 @@
 <img class="background" [src]="(album$ | async).coverart">
 <mat-card>
     <mat-card-title>{{(album$ | async).title}}</mat-card-title>
+    <mat-card-content fxLayout="column">
+        <span class="mat-body-1">{{(album$ | async)?.artist?.name}}</span>
+        <span class="mat-caption">{{(album$ | async)?.tracks.length}} Tracks</span>
+    </mat-card-content>
     <mat-card-content>
         <mat-nav-list>
             <a mat-list-item *ngFor="let track of (album$ | async)?.tracks" (click)="queueTrack(track)">
-                {{track.title}}
+                <h3 matLine>{{track.title}}</h3>
+                <p matLine *ngIf="track.duration">{{track.duration | duration}}</p>
             </a>
         </mat-nav-list>
     </mat-card-content>

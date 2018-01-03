@@ -1,0 +1,6 @@
+{
+    "name": "Rust Media Server",
+    "short_name": "RMS",
+    "start_url": ".",
+    "display": "standalone"
+}

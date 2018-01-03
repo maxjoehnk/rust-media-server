@@ -9,5 +9,6 @@ pub struct Track {
     pub stream_url: String,
     pub provider: Provider,
     pub path: String,
-    pub coverart: Option<String>
+    pub coverart: Option<String>,
+    pub duration: Option<u64>
 }

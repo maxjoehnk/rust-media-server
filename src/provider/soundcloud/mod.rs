@@ -18,7 +18,7 @@ impl provider::ProviderInstance for SoundcloudProvider {
         Ok(0)
     }
     fn root(&self) -> provider::ProviderFolder {
-        provider::ProviderFolder::empty(self.title().to_owned())
+        provider::ProviderFolder::empty()
     }
     fn navigate(&self, path: Vec<String>) -> Result<provider::ProviderFolder, provider::NavigationError> {
         Err(provider::NavigationError::PathNotFound)

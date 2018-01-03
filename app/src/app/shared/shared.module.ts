@@ -8,6 +8,7 @@ import {
 } from '@angular/material';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
+import { DurationPipe } from './duration.pipe';
 
 @NgModule({
     imports: [
@@ -33,8 +34,10 @@ import { HttpClientModule } from '@angular/common/http';
         MatCardModule,
         MatIconModule,
         FlexLayoutModule,
-        HttpClientModule
-    ]
+        HttpClientModule,
+        DurationPipe
+    ],
+    declarations: [DurationPipe]
 })
 export class SharedModule {
 }

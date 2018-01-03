@@ -1,4 +1,5 @@
 use super::{SharedProviders, ProviderFolder, NavigationError};
+use logger::logger;
 
 pub struct Explorer {
     pub path: Vec<String>,
@@ -19,8 +20,8 @@ impl Explorer {
         while current.len() > 0 {
             let layer = match current.find('/') {
                 Some(index) => {
-                    let layer = &path[..index];
-                    current = &path[index + 1..];
+                    let layer = &current[..index];
+                    current = &current[index + 1..];
                     layer
                 },
                 None => {
@@ -57,7 +58,6 @@ impl Explorer {
             .map(|provider| provider.lock().unwrap().title().to_owned())
             .collect();
         ProviderFolder {
-            label: String::from("Root"),
             folders,
             items: vec![]
         }

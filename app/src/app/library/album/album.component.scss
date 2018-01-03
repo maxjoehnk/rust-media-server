@@ -17,12 +17,27 @@ mat-card {
     margin: 128px auto;
 }
 
+mat-card-title {
+    max-width: calc(100% - 56px);
+}
+
 .play {
     position: absolute;
     top: -28px;
-    right: 32px;
+    right: 16px;
 
     i {
         font-size: 24px;
+    }
+}
+
+@media screen and (max-width: 599px) {
+    mat-card {
+        margin: 100vw 0 48px;
+        border-radius: 0;
+    }
+
+    img.background {
+        height: 100vw;
     }
 }

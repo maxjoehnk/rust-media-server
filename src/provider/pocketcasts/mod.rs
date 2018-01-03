@@ -59,7 +59,6 @@ impl provider::ProviderInstance for PocketcastsProvider {
 
     fn root(&self) -> provider::ProviderFolder {
         provider::ProviderFolder {
-            label: self.title().to_owned(),
             folders: vec![
                 "Subscriptions".to_owned(),
                 "Top Charts".to_owned(),
@@ -71,29 +70,54 @@ impl provider::ProviderInstance for PocketcastsProvider {
     }
 
     fn navigate(&self, path: Vec<String>) -> Result<provider::ProviderFolder, provider::NavigationError> {
-        match path[0].as_str() {
-            "Subscriptions" => {
-                let subscriptions = self.user.get_subscriptions();
-                let folder = provider::ProviderFolder {
-                    label: "Subscriptions".to_owned(),
-                    folders: self.user
-                        .get_subscriptions()
-                        .iter()
-                        .cloned()
-                        .map(|podcast| podcast.title)
-                        .collect(),
-                    items: vec![]
-                };
-                Ok(folder)
-            },
-            "Top Charts" => Ok(provider::ProviderFolder::empty("Top Charts".to_owned())),
-            "Featured" => Ok(provider::ProviderFolder::empty("Featured".to_owned())),
-            "Trending" => Ok(provider::ProviderFolder::empty("Trending".to_owned())),
+        let podcasts = match path[0].as_str() {
+            "Subscriptions" => Ok(self.user.get_subscriptions()),
+            "Top Charts" => Ok(self.user.get_top_charts()),
+            "Featured" => Ok(self.user.get_featured()),
+            "Trending" => Ok(self.user.get_trending()),
+            _ => Err(provider::NavigationError::PathNotFound)
+        };
+        match path.len() {
+            1 => podcasts.map(provider::ProviderFolder::from),
+            2 => podcasts.and_then(|podcasts| {
+                podcasts
+                    .iter()
+                    .find(|podcast| podcast.title == path[1])
+                    .and_then(|podcast| podcast.get_episodes(&self.user))
+                    .map(|episodes| {
+                        episodes
+                            .iter()
+                            .cloned()
+                            .map(|episode| Track::from(episode))
+                            .map(provider::ProviderItem::from)
+                            .collect()
+                    })
+                    .ok_or(provider::NavigationError::FetchError)
+                    .map(|items| {
+                        provider::ProviderFolder {
+                            folders: vec![],
+                            items
+                        }
+                    })
+            }),
             _ => Err(provider::NavigationError::PathNotFound)
         }
     }
 
     fn search(&self, _query: String) -> Vec<provider::ProviderItem> {
         vec![]
+    }
+}
+
+impl From<Vec<PocketcastPodcast>> for provider::ProviderFolder {
+    fn from(podcasts: Vec<PocketcastPodcast>) -> provider::ProviderFolder {
+        provider::ProviderFolder {
+            folders: podcasts
+                .iter()
+                .cloned()
+                .map(|podcast| podcast.title)
+                .collect(),
+            items: vec![]
+        }
     }
 }

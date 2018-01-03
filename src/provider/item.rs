@@ -2,10 +2,10 @@ use library::{Track, Album, Artist};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ProviderItem {
-    label: String,
-    track: Option<Track>,
-    album: Option<Album>,
-    artist: Option<Artist>
+    pub label: String,
+    pub track: Option<Track>,
+    pub album: Option<Album>,
+    pub artist: Option<Artist>
 }
 
 impl From<Track> for ProviderItem {

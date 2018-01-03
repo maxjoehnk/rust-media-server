@@ -34,5 +34,6 @@ pub trait ProviderInstance {
 
 #[derive(Debug)]
 pub enum NavigationError {
-    PathNotFound
+    PathNotFound,
+    FetchError
 }

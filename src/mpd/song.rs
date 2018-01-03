@@ -8,7 +8,9 @@ pub struct MpdSong {
     #[serde(rename = "Id")]
     id: usize,
     #[serde(rename = "Track")]
-    track: usize
+    track: usize,
+    #[serde(rename = "Time")]
+    time: Option<u64>
 }
 
 impl From<Track> for MpdSong {
@@ -17,7 +19,8 @@ impl From<Track> for MpdSong {
             file: track.path,
             title: Some(track.title),
             id: track.id.unwrap_or(0),
-            track: 0
+            track: 0,
+            time: track.duration
         }
     }
 }
