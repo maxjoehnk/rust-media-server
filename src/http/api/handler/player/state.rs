@@ -24,7 +24,7 @@ impl PlayerStateHandler {
 
 impl Handler for PlayerStateHandler {
     fn handle(&self, _: &mut Request) -> IronResult<Response> {
-        let mut player = self.player.lock().unwrap();
+        let player = self.player.lock().unwrap();
         let current = player.queue
             .current()
             .cloned()

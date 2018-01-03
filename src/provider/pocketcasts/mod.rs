@@ -73,16 +73,16 @@ impl provider::ProviderInstance for PocketcastsProvider {
     fn navigate(&self, path: Vec<String>) -> Result<provider::ProviderFolder, provider::NavigationError> {
         match path[0].as_str() {
             "Subscriptions" => {
+                let subscriptions = self.user.get_subscriptions();
                 let folder = provider::ProviderFolder {
                     label: "Subscriptions".to_owned(),
-                    folders: vec![],
-                    items: self.user
+                    folders: self.user
                         .get_subscriptions()
                         .iter()
                         .cloned()
-                        .map(Album::from)
-                        .map(provider::ProviderItem::from)
-                        .collect()
+                        .map(|podcast| podcast.title)
+                        .collect(),
+                    items: vec![]
                 };
                 Ok(folder)
             },
