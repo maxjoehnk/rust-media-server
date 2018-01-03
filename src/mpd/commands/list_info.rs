@@ -4,7 +4,7 @@ use library::GlobalLibrary;
 use player::GlobalPlayer;
 use mpd::commands::list_playlists::PlaylistEntry;
 use mpd::song::MpdSong;
-use provider::{SharedProviders, Explorer, ProviderFolder};
+use provider::{SharedProviders, Explorer};
 
 #[derive(Serialize)]
 pub struct PathItem {
@@ -46,7 +46,7 @@ impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>)> for ListInfoC
                     .iter()
                     .map(|folder| {
                         PathItem {
-                            directory: folder.clone().label
+                            directory: folder.clone()
                         }
                     })
                     .collect();
@@ -57,13 +57,13 @@ impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>)> for ListInfoC
                 let mut explorer = Explorer::new(providers.to_vec());
                 explorer.navigate_absolute(path.to_owned());
                 let path = explorer.path();
-                let folders = explorer.items()
-                    .unwrap()
+                let folder = explorer.items().unwrap();
+                let folders = folder
                     .folders
                     .iter()
                     .map(|folder| {
                         PathItem {
-                            directory: format!("{}{}", path, folder.label)
+                            directory: format!("{}{}", path, folder)
                         }
                     })
                     .collect();

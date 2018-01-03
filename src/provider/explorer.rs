@@ -1,4 +1,4 @@
-use super::{SharedProviders, ProviderFolder};
+use super::{SharedProviders, ProviderFolder, NavigationError};
 
 pub struct Explorer {
     pub path: Vec<String>,
@@ -54,7 +54,7 @@ impl Explorer {
     fn get_root(&self) -> ProviderFolder {
         let folders = self.providers
             .iter()
-            .map(|provider| provider.lock().unwrap().root())
+            .map(|provider| provider.lock().unwrap().title().to_owned())
             .collect();
         ProviderFolder {
             label: String::from("Root"),
@@ -63,21 +63,28 @@ impl Explorer {
         }
     }
 
-    pub fn items(&self) -> Result<ProviderFolder, ()> {
+    pub fn items(&self) -> Result<ProviderFolder, NavigationError> {
         let root = self.get_root();
         match self.path.len() {
             0 => Ok(root),
+            1 => {
+                let path = &self.path[0];
+                let provider = self.providers
+                    .iter()
+                    .find(|provider| provider.lock().unwrap().title() == path);
+                provider
+                    .ok_or(NavigationError::PathNotFound)
+                    .map(|provider| provider.lock().unwrap().root())
+            },
             _ => {
-                let mut folder = Some(root);
-                let path = self.path.clone();
-                for item in path {
-                    folder = folder.ok_or(())?
-                        .folders
-                        .iter()
-                        .cloned()
-                        .find(|folder| folder.label == item);
-                }
-                folder.ok_or(())
+                let path = &self.path[0];
+                let provider = self.providers
+                    .iter()
+                    .find(|provider| provider.lock().unwrap().title() == path);
+                let path = &self.path[1..];
+                provider
+                    .ok_or(NavigationError::PathNotFound)
+                    .and_then(|provider| provider.lock().unwrap().navigate(path.to_vec()))
             }
         }
     }

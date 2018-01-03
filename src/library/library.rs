@@ -1,5 +1,5 @@
 use library::{Artist, Album, Track, Playlist};
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 #[derive(Debug, Serialize)]

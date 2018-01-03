@@ -1,7 +1,6 @@
 use iron::prelude::*;
 use iron::status;
 use iron::Handler;
-use router::Router;
 
 use library::GlobalLibrary;
 use player::GlobalPlayer;

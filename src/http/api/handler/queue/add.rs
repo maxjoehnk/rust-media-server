@@ -6,8 +6,6 @@ use router::Router;
 use library::{GlobalLibrary, Track};
 use player::GlobalPlayer;
 
-use serde_json;
-
 pub struct AddToQueueHandler {
     player: GlobalPlayer,
     library: GlobalLibrary

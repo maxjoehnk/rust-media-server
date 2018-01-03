@@ -28,5 +28,11 @@ pub trait ProviderInstance {
     fn title(&self) -> &'static str;
     fn sync(&mut self, library: GlobalLibrary) -> Result<usize, SyncError>;
     fn root(&self) -> ProviderFolder;
+    fn navigate(&self, path: Vec<String>) -> Result<ProviderFolder, NavigationError>;
     fn search(&self, query: String) -> Vec<ProviderItem>;
+}
+
+#[derive(Debug)]
+pub enum NavigationError {
+    PathNotFound
 }

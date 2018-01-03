@@ -59,9 +59,21 @@ impl provider::ProviderInstance for PocketcastsProvider {
 
     fn root(&self) -> provider::ProviderFolder {
         provider::ProviderFolder {
-            label: "Pocketcasts".to_owned(),
+            label: self.title().to_owned(),
             folders: vec![
-                provider::ProviderFolder {
+                "Subscriptions".to_owned(),
+                "Top Charts".to_owned(),
+                "Featured".to_owned(),
+                "Trending".to_owned()
+            ],
+            items: vec![]
+        }
+    }
+
+    fn navigate(&self, path: Vec<String>) -> Result<provider::ProviderFolder, provider::NavigationError> {
+        match path[0].as_str() {
+            "Subscriptions" => {
+                let folder = provider::ProviderFolder {
                     label: "Subscriptions".to_owned(),
                     folders: vec![],
                     items: self.user
@@ -71,24 +83,13 @@ impl provider::ProviderInstance for PocketcastsProvider {
                         .map(Album::from)
                         .map(provider::ProviderItem::from)
                         .collect()
-                },
-                provider::ProviderFolder {
-                    label: "Top Charts".to_owned(),
-                    folders: vec![],
-                    items: vec![]
-                },
-                provider::ProviderFolder {
-                    label: "Featured".to_owned(),
-                    folders: vec![],
-                    items: vec![]
-                },
-                provider::ProviderFolder {
-                    label: "Trending".to_owned(),
-                    folders: vec![],
-                    items: vec![]
-                }
-            ],
-            items: vec![]
+                };
+                Ok(folder)
+            },
+            "Top Charts" => Ok(provider::ProviderFolder::empty("Top Charts".to_owned())),
+            "Featured" => Ok(provider::ProviderFolder::empty("Featured".to_owned())),
+            "Trending" => Ok(provider::ProviderFolder::empty("Trending".to_owned())),
+            _ => Err(provider::NavigationError::PathNotFound)
         }
     }
 

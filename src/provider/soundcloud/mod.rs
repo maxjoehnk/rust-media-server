@@ -18,7 +18,10 @@ impl provider::ProviderInstance for SoundcloudProvider {
         Ok(0)
     }
     fn root(&self) -> provider::ProviderFolder {
-        provider::ProviderFolder::empty("Soundcloud".to_owned())
+        provider::ProviderFolder::empty(self.title().to_owned())
+    }
+    fn navigate(&self, path: Vec<String>) -> Result<provider::ProviderFolder, provider::NavigationError> {
+        Err(provider::NavigationError::PathNotFound)
     }
     fn search(&self, query: String) -> Vec<provider::ProviderItem> {
         let client = soundcloud::Client::new(self.client_id.as_str());
