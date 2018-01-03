@@ -70,27 +70,47 @@ impl Player {
 
     pub fn stop(&mut self) {
         self.state = PlayerState::Stop;
+        self.backend.stop();
         self.queue.clear();
     }
 
     pub fn prev(&mut self) {
-//        match self.queue.prev() {
-//            Some(track) => {
-//                self.select_track(&track);
-//            },
-//            None => {}
-//        }
+        {
+            match self.queue.prev() {
+                None => {
+                    self.state = PlayerState::Stop;
+                    self.backend.stop();
+                },
+                _ => {}
+            }
+        }
+        if self.state == PlayerState::Play {
+            match self.queue.current() {
+                Some(track) => {
+                    self.select_track(&track);
+                },
+                _ => {}
+            }
+        }
     }
 
     pub fn next(&mut self) {
-//        match self.queue.next() {
-//            Some(track) => {
-//                self.select_track(&track);
-//            },
-//            None => {
-//                self.state = PlayerState::Stop;
-//            }
-//        }
+        {
+            match self.queue.next() {
+                None => {
+                    self.state = PlayerState::Stop;
+                },
+                _ => {}
+            }
+        }
+        if self.state == PlayerState::Play {
+            match self.queue.current() {
+                Some(track) => {
+                    self.select_track(&track);
+                },
+                _ => {}
+            }
+        }
     }
 
     fn get_backend(&self) -> &GstBackend {
@@ -148,6 +168,10 @@ impl GstBackend {
 
     fn pause(&self) {
         self.pipeline.set_state(gst::State::Paused);
+    }
+
+    fn stop(&self) {
+        self.pipeline.set_state(gst::State::Null);
     }
 }
 

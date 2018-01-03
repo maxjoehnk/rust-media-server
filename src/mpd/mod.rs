@@ -134,7 +134,11 @@ enum MpdCommands {
     #[serde(rename = "stop")]
     Stop,
     #[serde(rename = "list")]
-    List(String)
+    List(String),
+    #[serde(rename = "add")]
+    Add(String),
+    #[serde(rename = "addid")]
+    AddId(String),
 }
 
 fn parse_single(line: String) -> Result<MpdCommands, serde_mpd::Error> {

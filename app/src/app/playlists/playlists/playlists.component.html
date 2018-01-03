@@ -1,0 +1,6 @@
+<mat-list>
+    <mat-list-item *ngFor="let playlist of (playlists$ | async)">
+        <h3 matLine>{{playlist.title}}</h3>
+        <p matLine>{{playlist.tracks.length}} Tracks</p>
+    </mat-list-item>
+</mat-list>

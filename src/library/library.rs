@@ -1,6 +1,8 @@
 use library::{Artist, Album, Track, Playlist};
+use provider::SharedProviders;
 use std::sync::RwLock;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use url::Url;
 
 #[derive(Debug, Serialize)]
 pub struct Library {
@@ -30,6 +32,23 @@ impl Library {
             tracks: RwLock::new(vec![]),
             playlists: RwLock::new(vec![])
         }
+    }
+
+    pub fn resolve_track(&self, providers: SharedProviders, uri: &String) -> Option<Track> {
+        self.tracks
+            .read()
+            .unwrap()
+            .iter()
+            .cloned()
+            .find(|track| &track.uri == uri)
+            .or_else(|| {
+                Url::parse(uri)
+                    .ok()
+                    .and_then(|uri| providers
+                        .iter()
+                        .find(|provider| provider.read().unwrap().uri_scheme() == uri.scheme()))
+                    .and_then(|provider| provider.read().unwrap().resolve_track(uri))
+            })
     }
 
     pub fn get_track(&self, id: &usize) -> Option<Track> {
@@ -79,6 +98,17 @@ impl Library {
                 album
             });
         self.albums.write().unwrap().extend(albums);
+    }
+
+    pub fn add_playlists(&self, playlists: &mut Vec<Playlist>) {
+        let playlists = playlists
+            .iter()
+            .cloned()
+            .map(|mut playlist| {
+                playlist.id = Some(self.playlist_id.fetch_add(1, Ordering::Relaxed));
+                playlist
+            });
+        self.playlists.write().unwrap().extend(playlists);
     }
 
     pub fn add_album(&self, album: &mut Album) {

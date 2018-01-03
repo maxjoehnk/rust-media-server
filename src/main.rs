@@ -26,6 +26,7 @@ extern crate router;
 extern crate mount;
 extern crate staticfile;
 extern crate soundcloud;
+extern crate url;
 
 mod mpd;
 mod library;
@@ -38,7 +39,7 @@ mod logger;
 use std::fs::File;
 use std::io::prelude::*;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 
 #[derive(Deserialize, Clone)]
 pub struct Config {
@@ -79,16 +80,16 @@ fn main() {
     let mut providers: provider::SharedProviders = vec![];
     {
         if config.pocketcasts.is_some() {
-            providers.push(Arc::new(Mutex::new(Box::new(config.pocketcasts.unwrap()))));
+            providers.push(Arc::new(RwLock::new(Box::new(config.pocketcasts.unwrap()))));
         }
         if config.soundcloud.is_some() {
-            providers.push(Arc::new(Mutex::new(Box::new(config.soundcloud.unwrap()))));
+            providers.push(Arc::new(RwLock::new(Box::new(config.soundcloud.unwrap()))));
         }
     }
 
     let threads = vec![
         jobs::mpd::spawn(config.mpd.clone(), player.clone(), library.clone(), providers.clone()),
-        jobs::http::spawn(config.http.clone(), player.clone(), library.clone()),
+        jobs::http::spawn(config.http.clone(), player.clone(), library.clone(), providers.clone()),
         jobs::gst::spawn(player.clone()),
         jobs::sync::spawn(providers.clone(), library.clone())
     ];

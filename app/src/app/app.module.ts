@@ -14,6 +14,7 @@ import { SharedModule } from './shared/shared.module';
 import { PlayerModule } from './player/player.module';
 import { LibraryModule } from './library/library.module';
 import { QueueService } from './queue.service';
+import { PlaylistsModule } from './playlists/playlists.module';
 
 @NgModule({
     declarations: [
@@ -29,7 +30,8 @@ import { QueueService } from './queue.service';
         ApolloModule,
         SharedModule,
         PlayerModule,
-        LibraryModule
+        LibraryModule,
+        PlaylistsModule
     ],
     providers: [
         QueueService

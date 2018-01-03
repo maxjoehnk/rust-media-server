@@ -22,14 +22,15 @@ iron = "0.6.0"
 staticfile = "*"
 router = "*"
 mount = "*"
-mime = "*"
+mime = "0.2.6"
+url = "*"
 
 [dependencies.slog]
 version = "2.1.1"
 features = ["max_level_debug"]
 
 [dependencies.soundcloud]
-git = "https://github.com/maxjoehnk/soundcloud-rs"
+path = "soundcloud-rs"
 
 [dependencies.serde_mpd]
 path = "serde_mpd"

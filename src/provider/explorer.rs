@@ -1,5 +1,4 @@
 use super::{SharedProviders, ProviderFolder, NavigationError};
-use logger::logger;
 
 pub struct Explorer {
     pub path: Vec<String>,
@@ -55,7 +54,7 @@ impl Explorer {
     fn get_root(&self) -> ProviderFolder {
         let folders = self.providers
             .iter()
-            .map(|provider| provider.lock().unwrap().title().to_owned())
+            .map(|provider| provider.read().unwrap().title().to_owned())
             .collect();
         ProviderFolder {
             folders,
@@ -71,20 +70,20 @@ impl Explorer {
                 let path = &self.path[0];
                 let provider = self.providers
                     .iter()
-                    .find(|provider| provider.lock().unwrap().title() == path);
+                    .find(|provider| provider.read().unwrap().title() == path);
                 provider
                     .ok_or(NavigationError::PathNotFound)
-                    .map(|provider| provider.lock().unwrap().root())
+                    .map(|provider| provider.read().unwrap().root())
             },
             _ => {
                 let path = &self.path[0];
                 let provider = self.providers
                     .iter()
-                    .find(|provider| provider.lock().unwrap().title() == path);
+                    .find(|provider| provider.read().unwrap().title() == path);
                 let path = &self.path[1..];
                 provider
                     .ok_or(NavigationError::PathNotFound)
-                    .and_then(|provider| provider.lock().unwrap().navigate(path.to_vec()))
+                    .and_then(|provider| provider.read().unwrap().navigate(path.to_vec()))
             }
         }
     }

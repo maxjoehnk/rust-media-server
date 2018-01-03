@@ -3,18 +3,22 @@ use iron::status;
 use iron::Handler;
 
 use library::GlobalLibrary;
+use provider::SharedProviders;
 use http::api::viewmodels::PlaylistModel;
 
+use rayon::prelude::*;
 use serde_json;
 
 pub struct ListPlaylistsHandler {
-    library: GlobalLibrary
+    library: GlobalLibrary,
+    providers: SharedProviders
 }
 
 impl ListPlaylistsHandler {
-    pub fn new(library: GlobalLibrary) -> ListPlaylistsHandler {
+    pub fn new(library: GlobalLibrary, providers: SharedProviders) -> ListPlaylistsHandler {
         ListPlaylistsHandler {
-            library
+            library,
+            providers
         }
     }
 }
@@ -25,9 +29,9 @@ impl Handler for ListPlaylistsHandler {
             .playlists
             .read()
             .unwrap()
-            .iter()
+            .par_iter()
             .cloned()
-            .map(|playlist| PlaylistModel::from(playlist, self.library.clone()))
+            .map(|playlist| PlaylistModel::from(playlist, self.library.clone(), self.providers.clone()))
             .collect();
         let res = serde_json::to_string(&playlists).unwrap();
 

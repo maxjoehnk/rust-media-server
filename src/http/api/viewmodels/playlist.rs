@@ -1,5 +1,6 @@
 use library::{GlobalLibrary, Playlist, Track};
-use provider::Provider;
+use provider::{Provider, SharedProviders};
+use rayon::prelude::*;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct PlaylistModel {
@@ -10,11 +11,11 @@ pub struct PlaylistModel {
 }
 
 impl PlaylistModel {
-    pub fn from(playlist: Playlist, library: GlobalLibrary) -> PlaylistModel {
+    pub fn from(playlist: Playlist, library: GlobalLibrary, providers: SharedProviders) -> PlaylistModel {
         let tracks = playlist
             .tracks
-            .iter()
-            .map(|id| library.get_track(&id))
+            .par_iter()
+            .map(|uri| library.resolve_track(providers.clone(), &uri))
             .filter(|track| track.is_some())
             .map(|track| track.unwrap())
             .collect();

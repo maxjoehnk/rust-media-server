@@ -4,6 +4,6 @@ use provider::Provider;
 pub struct Playlist {
     pub id: Option<usize>,
     pub title: String,
-    pub tracks: Vec<usize>,
+    pub tracks: Vec<String>,
     pub provider: Provider
 }

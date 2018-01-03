@@ -14,6 +14,7 @@ use std::path::Path;
 
 use library::GlobalLibrary;
 use player::GlobalPlayer;
+use provider::SharedProviders;
 
 mod api;
 
@@ -53,12 +54,12 @@ impl Handler for FallbackHandler {
     }
 }
 
-fn build_mount(player: GlobalPlayer, library: GlobalLibrary) -> Mount {
+fn build_mount(player: GlobalPlayer, library: GlobalLibrary, providers: SharedProviders) -> Mount {
     let mut mount = Mount::new();
     // Graphql Api
     // TODO
     // Rest API
-    mount.mount("/api", api::build(player, library));
+    mount.mount("/api", api::build(player, library, providers));
     // Frontend
     let mut frontend = Chain::new(Static::new(Path::new("app/dist")));
     frontend.link_around(Fallback);
@@ -67,8 +68,8 @@ fn build_mount(player: GlobalPlayer, library: GlobalLibrary) -> Mount {
     mount
 }
 
-pub fn open(config: HttpConfig, player: GlobalPlayer, library: GlobalLibrary) -> HttpResult<Listening> {
-    let mount = build_mount(player, library);
+pub fn open(config: HttpConfig, player: GlobalPlayer, library: GlobalLibrary, providers: SharedProviders) -> HttpResult<Listening> {
+    let mount = build_mount(player, library, providers);
     let server = Iron::new(mount);
     let guard = server.http(format!("{}:{}", config.ip, config.port));
     info!(logger, "[HTTP] Listening on Port {}", config.port);

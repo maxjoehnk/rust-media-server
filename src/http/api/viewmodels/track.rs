@@ -24,7 +24,7 @@ impl TrackModel {
             id: track.id,
             title: track.title,
             stream_url: track.stream_url,
-            path: track.path,
+            path: track.uri,
             provider: track.provider,
             coverart: track.coverart,
             duration: track.duration,

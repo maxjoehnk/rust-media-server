@@ -23,7 +23,7 @@ impl From<PocketcastEpisode> for Track {
             album_id: None,
             stream_url: episode.url,
             provider: Provider::Pocketcasts,
-            path: format!("pocketcasts:{}", episode.uuid),
+            uri: format!("pocketcasts://{}", episode.uuid),
             coverart: None,
             duration: episode.duration,
         }

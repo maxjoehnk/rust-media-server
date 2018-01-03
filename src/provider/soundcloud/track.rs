@@ -6,7 +6,7 @@ use library::Track;
 pub struct SoundcloudTrack {
     pub id: u64,
     pub title: String,
-    pub url: String,
+    pub url: Option<String>,
     pub coverart: Option<String>,
     pub duration: u64
 }
@@ -18,9 +18,9 @@ impl From<SoundcloudTrack> for Track {
             title: track.title,
             artist_id: None,
             album_id: None,
-            stream_url: track.url,
+            stream_url: track.url.unwrap(),
             provider: provider::Provider::Soundcloud,
-            path: format!("soundcloud:{}", track.id),
+            uri: format!("soundcloud://{}", track.id),
             coverart: track.coverart,
             duration: Some(track.duration)
         }
@@ -32,7 +32,7 @@ impl From<soundcloud::Track> for SoundcloudTrack {
         SoundcloudTrack {
             id: track.id,
             title: track.title,
-            url: track.stream_url.unwrap(),
+            url: track.stream_url,
             coverart: track.artwork_url,
             duration: track.duration
         }

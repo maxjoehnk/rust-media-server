@@ -3,6 +3,7 @@ use mpd::commands::MpdCommand;
 use library::{GlobalLibrary, Track};
 use player::GlobalPlayer;
 use provider::SharedProviders;
+use rayon::prelude::*;
 
 #[derive(Debug, Serialize)]
 pub struct PlaylistItem {
@@ -12,7 +13,7 @@ pub struct PlaylistItem {
 impl From<Track> for PlaylistItem {
     fn from(track: Track) -> PlaylistItem {
         PlaylistItem {
-            file: track.path
+            file: track.uri
         }
     }
 }
@@ -30,7 +31,7 @@ impl ListPlaylistCommand {
 }
 
 impl MpdCommand<Vec<PlaylistItem>> for ListPlaylistCommand {
-    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary, _providers: &SharedProviders) -> Result<Vec<PlaylistItem>, MpdError> {
+    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary, providers: &SharedProviders) -> Result<Vec<PlaylistItem>, MpdError> {
         let playlists = library
             .playlists
             .read()
@@ -41,8 +42,8 @@ impl MpdCommand<Vec<PlaylistItem>> for ListPlaylistCommand {
         match playlist {
             Some(playlist) => {
                 let tracks = playlist.tracks
-                    .iter()
-                    .map(|id| library.get_track(id))
+                    .par_iter()
+                    .map(|uri| library.resolve_track(providers.clone(), uri))
                     .filter(|track| track.is_some())
                     .map(|track| track.unwrap())
                     .map(PlaylistItem::from)

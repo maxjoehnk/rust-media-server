@@ -20,12 +20,15 @@ impl provider::ProviderInstance for PocketcastsProvider {
         "Pocketcasts"
     }
 
-    fn sync(&mut self, library: GlobalLibrary) -> Result<usize, provider::SyncError> {
+    fn uri_scheme(&self) -> &'static str { "pocketcasts" }
+
+    fn sync(&mut self, library: GlobalLibrary) -> Result<provider::SyncResult, provider::SyncError> {
         let podcasts = self.user.get_subscriptions();
+        let albums = podcasts.len();
         let mut episodes: Vec<Track> = podcasts
             .par_iter()
             .cloned()
-            .map(|mut podcast| {
+            .map(|podcast| {
                 let episodes = podcast.get_episodes(&self.user).unwrap();
                 (podcast, episodes)
             })
@@ -52,9 +55,14 @@ impl provider::ProviderInstance for PocketcastsProvider {
                 a.extend(b);
                 a
             });
-        let amount = episodes.len();
+        let tracks = episodes.len();
         library.add_tracks(&mut episodes);
-        Ok(amount)
+        Ok(provider::SyncResult {
+            tracks,
+            albums,
+            artists: albums,
+            playlists: 0
+        })
     }
 
     fn root(&self) -> provider::ProviderFolder {
@@ -106,6 +114,10 @@ impl provider::ProviderInstance for PocketcastsProvider {
 
     fn search(&self, _query: String) -> Vec<provider::ProviderItem> {
         vec![]
+    }
+
+    fn resolve_track(&self, _uri: &String) -> Option<Track> {
+        None
     }
 }
 

@@ -10,10 +10,16 @@ pub use self::folder::ProviderFolder;
 pub use self::sync_error::SyncError;
 pub use self::explorer::Explorer;
 
-use std::sync::{Arc, Mutex};
-use library::GlobalLibrary;
+use std::sync::{Arc, RwLock};
+use library::{GlobalLibrary, Track};
 
-pub type SharedProviders = Vec<Arc<Mutex<Box<ProviderInstance + Send>>>>;
+pub type SharedProviders = Vec<Arc<RwLock<Box<ProviderInstance + Send + Sync>>>>;
+pub struct SyncResult {
+    pub tracks: usize,
+    pub albums: usize,
+    pub artists: usize,
+    pub playlists: usize
+}
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Provider {
@@ -26,10 +32,12 @@ pub enum Provider {
 
 pub trait ProviderInstance {
     fn title(&self) -> &'static str;
-    fn sync(&mut self, library: GlobalLibrary) -> Result<usize, SyncError>;
+    fn uri_scheme(&self) -> &'static str;
+    fn sync(&mut self, library: GlobalLibrary) -> Result<SyncResult, SyncError>;
     fn root(&self) -> ProviderFolder;
     fn navigate(&self, path: Vec<String>) -> Result<ProviderFolder, NavigationError>;
     fn search(&self, query: String) -> Vec<ProviderItem>;
+    fn resolve_track(&self, uri: &String) -> Option<Track>;
 }
 
 #[derive(Debug)]
