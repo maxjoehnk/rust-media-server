@@ -3,16 +3,16 @@ use iron::status;
 use iron::Handler;
 use router::Router;
 
-use library::{GlobalLibrary, Track};
-use player::GlobalPlayer;
+use library::{SharedLibrary, Track};
+use player::SharedPlayer;
 
 pub struct AddToQueueHandler {
-    player: GlobalPlayer,
-    library: GlobalLibrary
+    player: SharedPlayer,
+    library: SharedLibrary
 }
 
 impl AddToQueueHandler {
-    pub fn new(player: GlobalPlayer, library: GlobalLibrary) -> AddToQueueHandler {
+    pub fn new(player: SharedPlayer, library: SharedLibrary) -> AddToQueueHandler {
         AddToQueueHandler {
             player,
             library

@@ -1,10 +1,10 @@
 use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
-use library::GlobalLibrary;
-use player::GlobalPlayer;
 use mpd::commands::list_playlists::PlaylistEntry;
 use mpd::song::MpdSong;
-use provider::{SharedProviders, Explorer};
+use provider::Explorer;
+use app::SharedApp;
+use library::SharedLibrary;
 
 #[derive(Serialize)]
 pub struct PathItem {
@@ -22,7 +22,7 @@ impl ListInfoCommand {
         }
     }
 
-    fn get_playlists(&self, library: &GlobalLibrary) -> Vec<PlaylistEntry> {
+    fn get_playlists(&self, library: &SharedLibrary) -> Vec<PlaylistEntry> {
         library
             .playlists
             .read()
@@ -35,10 +35,10 @@ impl ListInfoCommand {
 }
 
 impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>)> for ListInfoCommand {
-    fn handle(&self, _player: &GlobalPlayer, library: &GlobalLibrary, providers: &SharedProviders) -> Result<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>), MpdError> {
+    fn handle(&self, app: &SharedApp) -> Result<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>), MpdError> {
         match self.path {
             None => {
-                let explorer = Explorer::new(providers.to_vec());
+                let explorer = Explorer::new(app.providers.to_vec());
                 let folders = explorer
                     .items()
                     .unwrap()
@@ -50,11 +50,11 @@ impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>)> for ListInfoC
                         }
                     })
                     .collect();
-                let playlists = self.get_playlists(library);
+                let playlists = self.get_playlists(&app.library);
                 Ok((folders, playlists, vec![]))
-            },
+            }
             Some(ref path) => {
-                let mut explorer = Explorer::new(providers.to_vec());
+                let mut explorer = Explorer::new(app.providers.to_vec());
                 explorer.navigate_absolute(path.to_owned());
                 let path = explorer.path();
                 let folder = explorer.items().unwrap();

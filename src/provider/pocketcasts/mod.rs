@@ -3,7 +3,7 @@ mod podcast;
 mod user;
 
 use provider;
-use library::{Track, GlobalLibrary, Album, Artist};
+use library::{Track, SharedLibrary, Album, Artist};
 use rayon::prelude::*;
 
 pub use self::podcast::PocketcastPodcast;
@@ -22,7 +22,7 @@ impl provider::ProviderInstance for PocketcastsProvider {
 
     fn uri_scheme(&self) -> &'static str { "pocketcasts" }
 
-    fn sync(&mut self, library: GlobalLibrary) -> Result<provider::SyncResult, provider::SyncError> {
+    fn sync(&mut self, library: SharedLibrary) -> Result<provider::SyncResult, provider::SyncError> {
         let podcasts = self.user.get_subscriptions();
         let albums = podcasts.len();
         let mut episodes: Vec<Track> = podcasts

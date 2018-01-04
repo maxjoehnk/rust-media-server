@@ -3,17 +3,17 @@ use iron::status;
 use iron::Handler;
 use router::Router;
 
-use library::GlobalLibrary;
+use library::SharedLibrary;
 use http::api::viewmodels::AlbumModel;
 
 use serde_json;
 
 pub struct GetAlbumHandler {
-    library: GlobalLibrary
+    library: SharedLibrary
 }
 
 impl GetAlbumHandler {
-    pub fn new(library: GlobalLibrary) -> GetAlbumHandler {
+    pub fn new(library: SharedLibrary) -> GetAlbumHandler {
         GetAlbumHandler {
             library
         }

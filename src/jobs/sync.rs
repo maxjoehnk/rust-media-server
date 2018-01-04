@@ -1,18 +1,16 @@
 use std::thread;
 use std::time::Duration;
-use library::GlobalLibrary;
-use provider::{ProviderInstance, SharedProviders};
 use logger::logger;
-use std::sync::{Arc, Mutex};
+use app::SharedApp;
 
-pub fn spawn(providers: SharedProviders, library: GlobalLibrary) -> thread::JoinHandle<()> {
+pub fn spawn(app: SharedApp) -> thread::JoinHandle<()> {
     thread::spawn(move|| {
         loop {
-            let providers = providers.clone();
+            let providers = app.providers.clone();
             for provider in providers {
                 let mut provider = provider.write().unwrap();
                 info!(logger, "[SYNC] Syncing {} library", provider.title());
-                match provider.sync(library.clone()) {
+                match provider.sync(app.library.clone()) {
                     Ok(result) => info!(logger, "[SYNC] Synced {} tracks, {} albums, {} artist and {} playlists from {}", result.tracks, result.albums, result.artists, result.playlists, provider.title()),
                     Err(err) => error!(logger, "[SYNC] Error syncing {}: {:?}", provider.title(), err)
                 }

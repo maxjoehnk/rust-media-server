@@ -1,8 +1,6 @@
 use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
-use library::GlobalLibrary;
-use player::GlobalPlayer;
-use provider::SharedProviders;
+use app::SharedApp;
 use rayon::prelude::*;
 
 pub struct LoadPlaylistCommand {
@@ -18,8 +16,9 @@ impl LoadPlaylistCommand {
 }
 
 impl MpdCommand<()> for LoadPlaylistCommand {
-    fn handle(&self, player: &GlobalPlayer, library: &GlobalLibrary, providers: &SharedProviders) -> Result<(), MpdError> {
-        let tracks = library
+    fn handle(&self, app: &SharedApp) -> Result<(), MpdError> {
+        let tracks = app
+            .library
             .playlists
             .read()
             .unwrap()
@@ -28,11 +27,11 @@ impl MpdCommand<()> for LoadPlaylistCommand {
             .unwrap()
             .tracks
             .par_iter()
-            .map(|uri| library.resolve_track(providers.clone(), uri))
+            .map(|uri| app.library.resolve_track(app.providers.clone(), uri))
             .filter(|track| track.is_some())
             .map(|track| track.unwrap())
             .collect();
-        let mut player = player.lock().unwrap();
+        let mut player = app.player.lock().unwrap();
         player.queue.add_multiple(tracks);
         Ok(())
     }

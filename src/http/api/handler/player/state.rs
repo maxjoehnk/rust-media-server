@@ -4,17 +4,17 @@ use iron::Handler;
 
 use serde_json;
 
-use library::GlobalLibrary;
-use player::{GlobalPlayer, PlayerState};
+use library::SharedLibrary;
+use player::{SharedPlayer, PlayerState};
 use http::api::viewmodels::{PlayerModel, TrackModel};
 
 pub struct PlayerStateHandler {
-    player: GlobalPlayer,
-    library: GlobalLibrary
+    player: SharedPlayer,
+    library: SharedLibrary
 }
 
 impl PlayerStateHandler {
-    pub fn new(player: GlobalPlayer, library: GlobalLibrary) -> PlayerStateHandler {
+    pub fn new(player: SharedPlayer, library: SharedLibrary) -> PlayerStateHandler {
         PlayerStateHandler {
             player,
             library

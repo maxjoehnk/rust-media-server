@@ -1,8 +1,7 @@
 use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
-use library::GlobalLibrary;
-use player::{GlobalPlayer, PlayerState};
-use provider::SharedProviders;
+use player::PlayerState;
+use app::SharedApp;
 
 #[derive(Debug, Serialize)]
 pub struct AudioFormat {
@@ -47,8 +46,8 @@ impl StatusCommand {
 }
 
 impl MpdCommand<StatusResponse> for StatusCommand {
-    fn handle(&self, player: &GlobalPlayer, _library: &GlobalLibrary, _providers: &SharedProviders) -> Result<StatusResponse, MpdError> {
-        let player = player.lock().unwrap();
+    fn handle(&self, app: &SharedApp) -> Result<StatusResponse, MpdError> {
+        let player = app.player.lock().unwrap();
         Ok(StatusResponse {
             volume: player.volume(),
             repeat: false,

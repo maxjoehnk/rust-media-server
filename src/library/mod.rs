@@ -12,4 +12,4 @@ pub use self::library::Library;
 pub use self::playlist::Playlist;
 pub use self::track::Track;
 
-pub type GlobalLibrary = Arc<Library>;
+pub type SharedLibrary = Arc<Library>;

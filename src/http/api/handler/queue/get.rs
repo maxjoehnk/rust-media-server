@@ -2,19 +2,19 @@ use iron::prelude::*;
 use iron::status;
 use iron::Handler;
 
-use library::GlobalLibrary;
-use player::GlobalPlayer;
+use library::SharedLibrary;
+use player::SharedPlayer;
 use http::api::viewmodels::TrackModel;
 
 use serde_json;
 
 pub struct GetQueueHandler {
-    player: GlobalPlayer,
-    library: GlobalLibrary
+    player: SharedPlayer,
+    library: SharedLibrary
 }
 
 impl GetQueueHandler {
-    pub fn new(player: GlobalPlayer, library: GlobalLibrary) -> GetQueueHandler {
+    pub fn new(player: SharedPlayer, library: SharedLibrary) -> GetQueueHandler {
         GetQueueHandler {
             player,
             library

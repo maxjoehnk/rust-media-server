@@ -1,11 +1,12 @@
 use gstreamer as gst;
-use player::{Queue, GlobalPlayer};
+use player::{Queue, SharedPlayer};
 use gstreamer::MessageView;
 use std::thread;
 use std::time::Duration;
 use gstreamer::prelude::*;
 use library::Track;
 use logger::logger;
+use bus::{SharedBus, Message};
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum PlayerState {
@@ -31,19 +32,19 @@ pub struct Player {
     pub state: PlayerState,
     pub queue: Queue,
     backend: GstBackend,
-    volume: u32
+    volume: u32,
+    bus: SharedBus
 }
 
 impl Player {
-    pub fn new() -> Player {
-        let player = Player {
+    pub fn new(bus: SharedBus) -> Player {
+        Player {
             state: PlayerState::Stop,
             queue: Queue::new(),
             backend: GstBackend::new(),
-            volume: 100
-        };
-
-        player
+            volume: 100,
+            bus
+        }
     }
 
     pub fn play(&mut self) {
@@ -53,6 +54,7 @@ impl Player {
                 match current {
                     Some(track) => {
                         self.state = PlayerState::Play;
+                        self.bus.lock().unwrap().emit(Message::PlayerState);
                         self.select_track(&track);
                     },
                     None => {}
@@ -60,6 +62,7 @@ impl Player {
             },
             PlayerState::Pause => {
                 self.state = PlayerState::Play;
+                self.bus.lock().unwrap().emit(Message::PlayerState);
                 self.backend.play();
             },
             _ => {}
@@ -68,11 +71,13 @@ impl Player {
 
     pub fn pause(&mut self) {
         self.state = PlayerState::Pause;
+        self.bus.lock().unwrap().emit(Message::PlayerState);
         self.backend.pause();
     }
 
     pub fn stop(&mut self) {
         self.state = PlayerState::Stop;
+        self.bus.lock().unwrap().emit(Message::PlayerState);
         self.backend.stop();
         self.queue.clear();
     }
@@ -82,6 +87,7 @@ impl Player {
             match self.queue.prev() {
                 None => {
                     self.state = PlayerState::Stop;
+                    self.bus.lock().unwrap().emit(Message::PlayerState);
                     self.backend.stop();
                 },
                 _ => {}
@@ -102,6 +108,7 @@ impl Player {
             match self.queue.next() {
                 None => {
                     self.state = PlayerState::Stop;
+                    self.bus.lock().unwrap().emit(Message::PlayerState);
                 },
                 _ => {}
             }
@@ -123,6 +130,7 @@ impl Player {
     pub fn set_volume(&mut self, volume: u32) {
         self.volume = volume;
         self.backend.set_volume(volume as f64 / 100.0);
+        self.bus.lock().unwrap().emit(Message::Volume);
     }
 
     fn get_backend(&self) -> &GstBackend {
@@ -200,7 +208,7 @@ impl GstBackend {
     }
 }
 
-pub fn main_loop(player: GlobalPlayer) -> thread::JoinHandle<()> {
+pub fn main_loop(player: SharedPlayer) -> thread::JoinHandle<()> {
     thread::spawn(move|| {
         loop {
             {

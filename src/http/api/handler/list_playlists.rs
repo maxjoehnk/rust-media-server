@@ -2,7 +2,7 @@ use iron::prelude::*;
 use iron::status;
 use iron::Handler;
 
-use library::GlobalLibrary;
+use library::SharedLibrary;
 use provider::SharedProviders;
 use http::api::viewmodels::PlaylistModel;
 
@@ -10,12 +10,12 @@ use rayon::prelude::*;
 use serde_json;
 
 pub struct ListPlaylistsHandler {
-    library: GlobalLibrary,
+    library: SharedLibrary,
     providers: SharedProviders
 }
 
 impl ListPlaylistsHandler {
-    pub fn new(library: GlobalLibrary, providers: SharedProviders) -> ListPlaylistsHandler {
+    pub fn new(library: SharedLibrary, providers: SharedProviders) -> ListPlaylistsHandler {
         ListPlaylistsHandler {
             library,
             providers

@@ -1,4 +1,4 @@
-use library::{GlobalLibrary, Album, Track, Artist};
+use library::{SharedLibrary, Album, Track, Artist};
 use provider::Provider;
 
 #[derive(Clone, Debug, Serialize)]
@@ -12,7 +12,7 @@ pub struct AlbumModel {
 }
 
 impl AlbumModel {
-    pub fn from(album: Album, library: GlobalLibrary) -> AlbumModel {
+    pub fn from(album: Album, library: SharedLibrary) -> AlbumModel {
         let tracks = library.tracks.read().unwrap();
         let artists = library.artists.read().unwrap();
         let tracks = tracks

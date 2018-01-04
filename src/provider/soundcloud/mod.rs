@@ -3,7 +3,7 @@ mod playlist;
 
 use soundcloud;
 use provider;
-use library::{GlobalLibrary, Playlist, Track};
+use library::{SharedLibrary, Playlist, Track};
 use url::Url;
 use std::str::FromStr;
 
@@ -31,7 +31,7 @@ impl provider::ProviderInstance for SoundcloudProvider {
 
     fn uri_scheme(&self) -> &'static str { "soundcloud" }
 
-    fn sync(&mut self, library: GlobalLibrary) -> Result<provider::SyncResult, provider::SyncError> {
+    fn sync(&mut self, library: SharedLibrary) -> Result<provider::SyncResult, provider::SyncError> {
         let client = self.client();
         let mut playlists: Vec<Playlist> = client
             .playlists()?

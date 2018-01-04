@@ -1,13 +1,13 @@
 mod handler;
 mod viewmodels;
 
-use library::GlobalLibrary;
-use player::GlobalPlayer;
+use library::SharedLibrary;
+use player::SharedPlayer;
 use provider::SharedProviders;
 use router::Router;
 use self::handler::*;
 
-pub fn build(player: GlobalPlayer, library: GlobalLibrary, providers: SharedProviders) -> Router {
+pub fn build(player: SharedPlayer, library: SharedLibrary, providers: SharedProviders) -> Router {
     router!(
         list_albums:    get  "/library/albums"     => ListAlbumsHandler::new(library.clone()),
         get_album:      get  "/library/albums/:id" => GetAlbumHandler::new(library.clone()),

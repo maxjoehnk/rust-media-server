@@ -2,17 +2,17 @@ use iron::prelude::*;
 use iron::status;
 use iron::Handler;
 
-use library::GlobalLibrary;
+use library::SharedLibrary;
 use http::api::viewmodels::ArtistModel;
 
 use serde_json;
 
 pub struct ListArtistsHandler {
-    library: GlobalLibrary
+    library: SharedLibrary
 }
 
 impl ListArtistsHandler  {
-    pub fn new(library: GlobalLibrary) -> ListArtistsHandler  {
+    pub fn new(library: SharedLibrary) -> ListArtistsHandler  {
         ListArtistsHandler  {
             library
         }

@@ -8,9 +8,7 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write, BufReader, BufRead};
 use std::thread;
 
-use library::GlobalLibrary;
-use player::GlobalPlayer;
-use provider::SharedProviders;
+use app::SharedApp;
 
 use serde_mpd;
 
@@ -22,22 +20,20 @@ pub struct MpdConfig {
     pub port: i32
 }
 
-pub fn open(config: MpdConfig, player: GlobalPlayer, library: GlobalLibrary, providers: SharedProviders) {
+pub fn open(config: MpdConfig, app: SharedApp) {
     let listener = TcpListener::bind(format!("{}:{}", config.ip, config.port)).unwrap();
     info!(logger, "[MPD] Listening on Port {}", config.port);
 
     for stream in listener.incoming() {
         debug!(logger, "[MPD] Connection opened");
 
-        let player = player.clone();
-        let library = library.clone();
-        let providers = providers.clone();
+        let app = app.clone();
 
-        thread::spawn(move|| handle_client(stream.unwrap(), player, library, providers));
+        thread::spawn(move|| handle_client(stream.unwrap(), app));
     }
 }
 
-fn handle_client(mut stream: TcpStream, player: GlobalPlayer, library: GlobalLibrary, providers: SharedProviders) {
+fn handle_client(mut stream: TcpStream, app: SharedApp) {
     let mut reader = BufReader::new(stream);
     let header = "OK MPD 0.16.0\n";
     let result = reader.get_ref().write(header.as_bytes());
@@ -72,7 +68,7 @@ fn handle_client(mut stream: TcpStream, player: GlobalPlayer, library: GlobalLib
                         match cmd {
                             Ok(MpdCommands::Idle) => {},
                             Ok(cmd) => {
-                                let mut result = handle_mpd_command(cmd, &player, &library, &providers).unwrap();
+                                let mut result = handle_mpd_command(cmd, &app).unwrap();
                                 result += "OK\n";
                                 trace!(logger, "< {:?}", &result);
                                 reader.get_ref().write(result.as_bytes());
@@ -149,43 +145,43 @@ fn parse_single(line: String) -> Result<MpdCommands, serde_mpd::Error> {
     serde_mpd::from_str(line.as_str())
 }
 
-fn handle_mpd_command(cmd: MpdCommands, player: &GlobalPlayer, library: &GlobalLibrary, providers: &SharedProviders) -> Result<String, error::MpdError> {
+fn handle_mpd_command(cmd: MpdCommands, app: &SharedApp) -> Result<String, error::MpdError> {
     debug!(logger, "[MPD] Command: {:?}", &cmd);
     match cmd {
-        MpdCommands::Status => commands::StatusCommand::new().handle(player, library, providers)
+        MpdCommands::Status => commands::StatusCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::CurrentSong => commands::CurrentSongCommand::new().handle(player, library, providers)
+        MpdCommands::CurrentSong => commands::CurrentSongCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::Pause(true) => commands::PauseCommand::new().handle(player, library, providers)
+        MpdCommands::Pause(true) => commands::PauseCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::Stop => commands::StopCommand::new().handle(player, library, providers)
+        MpdCommands::Stop => commands::StopCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::ListInfo(path) => commands::ListInfoCommand::new(path).handle(player, library, providers)
+        MpdCommands::ListInfo(path) => commands::ListInfoCommand::new(path).handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::ListPlaylists => commands::ListPlaylistsCommand::new().handle(player, library, providers)
+        MpdCommands::ListPlaylists => commands::ListPlaylistsCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::ListPlaylist(name) => commands::ListPlaylistCommand::new(name).handle(player, library, providers)
+        MpdCommands::ListPlaylist(name) => commands::ListPlaylistCommand::new(name).handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::ListPlaylistInfo(name) => commands::ListPlaylistInfoCommand::new(name).handle(player, library, providers)
+        MpdCommands::ListPlaylistInfo(name) => commands::ListPlaylistInfoCommand::new(name).handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::LoadPlaylist(name) => commands::LoadPlaylistCommand::new(name).handle(player, library, providers)
+        MpdCommands::LoadPlaylist(name) => commands::LoadPlaylistCommand::new(name).handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::Previous => commands::PreviousCommand::new().handle(player, library, providers)
+        MpdCommands::Previous => commands::PreviousCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::Next => commands::NextCommand::new().handle(player, library, providers)
+        MpdCommands::Next => commands::NextCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::Outputs => commands::OutputsCommand::new().handle(player, library, providers)
+        MpdCommands::Outputs => commands::OutputsCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::List(ref t) if t == "Artist" => commands::ListArtistCommand::new().handle(player, library, providers)
+        MpdCommands::List(ref t) if t == "Artist" => commands::ListArtistCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::ChangeVolumeBy(volume) => commands::ChangeVolumeCommand::new(volume).handle(player, library, providers)
+        MpdCommands::ChangeVolumeBy(volume) => commands::ChangeVolumeCommand::new(volume).handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::ChangeVolume(volume) => commands::SetVolumeCommand::new(volume).handle(player, library, providers)
+        MpdCommands::ChangeVolume(volume) => commands::SetVolumeCommand::new(volume).handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::CommandList(commands) => {
             let mut result = String::new();
             for command in commands {
-                result += handle_mpd_command(command, player, library, providers).unwrap().as_str();
+                result += handle_mpd_command(command, app).unwrap().as_str();
                 result += "list_OK\n";
             }
             Ok(result)

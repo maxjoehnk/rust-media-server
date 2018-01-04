@@ -28,6 +28,8 @@ extern crate staticfile;
 extern crate soundcloud;
 extern crate url;
 
+mod app;
+mod bus;
 mod mpd;
 mod library;
 mod player;
@@ -49,21 +51,6 @@ pub struct Config {
     soundcloud: Option<provider::soundcloud::SoundcloudProvider>
 }
 
-fn testing(player: player::GlobalPlayer, library: library::GlobalLibrary) {
-    let mut playlist = library::Playlist {
-        id: None,
-        title: "Test".to_owned(),
-        tracks: vec![],
-        provider: provider::Provider::LocalMedia
-    };
-    library.add_playlist(&mut playlist);
-
-    {
-        let mut player = player.lock().unwrap();
-        player.play();
-    }
-}
-
 fn read_config() -> Config {
     let mut config_file = File::open("config.toml").unwrap();
     let mut config = String::new();
@@ -74,8 +61,9 @@ fn read_config() -> Config {
 fn main() {
     gstreamer::init().unwrap();
     let config = read_config();
-    let library = Arc::new(library::Library::new());
-    let player = Arc::new(Mutex::new(player::Player::new()));
+    let bus: bus::SharedBus = Arc::new(Mutex::new(bus::MessageBus::new()));
+    let library: library::SharedLibrary = Arc::new(library::Library::new());
+    let player: player::SharedPlayer = Arc::new(Mutex::new(player::Player::new(bus.clone())));
 
     let mut providers: provider::SharedProviders = vec![];
     {
@@ -87,14 +75,19 @@ fn main() {
         }
     }
 
-    let threads = vec![
-        jobs::mpd::spawn(config.mpd.clone(), player.clone(), library.clone(), providers.clone()),
-        jobs::http::spawn(config.http.clone(), player.clone(), library.clone(), providers.clone()),
-        jobs::gst::spawn(player.clone()),
-        jobs::sync::spawn(providers.clone(), library.clone())
-    ];
+    let app = Arc::new(app::App {
+        bus,
+        player,
+        library,
+        providers
+    });
 
-    testing(player.clone(), library.clone());
+    let threads = vec![
+        jobs::mpd::spawn(config.mpd.clone(), app.clone()),
+        jobs::http::spawn(config.http.clone(), app.clone()),
+        jobs::gst::spawn(app.clone()),
+        jobs::sync::spawn(app.clone())
+    ];
 
     for handle in threads {
         let _ = handle.join();

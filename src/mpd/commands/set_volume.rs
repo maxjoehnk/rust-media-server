@@ -1,8 +1,6 @@
 use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
-use library::GlobalLibrary;
-use player::GlobalPlayer;
-use provider::SharedProviders;
+use app::SharedApp;
 
 pub struct SetVolumeCommand {
     pub volume: u32
@@ -17,8 +15,8 @@ impl SetVolumeCommand {
 }
 
 impl MpdCommand<()> for SetVolumeCommand {
-    fn handle(&self, player: &GlobalPlayer, _library: &GlobalLibrary, _providers: &SharedProviders) -> Result<(), MpdError> {
-        let mut player = player.lock().unwrap();
+    fn handle(&self, app: &SharedApp) -> Result<(), MpdError> {
+        let mut player = app.player.lock().unwrap();
         player.set_volume(self.volume);
         Ok(())
     }

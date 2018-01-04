@@ -1,4 +1,4 @@
-use library::{GlobalLibrary, Playlist, Track};
+use library::{SharedLibrary, Playlist, Track};
 use provider::{Provider, SharedProviders};
 use rayon::prelude::*;
 
@@ -11,7 +11,7 @@ pub struct PlaylistModel {
 }
 
 impl PlaylistModel {
-    pub fn from(playlist: Playlist, library: GlobalLibrary, providers: SharedProviders) -> PlaylistModel {
+    pub fn from(playlist: Playlist, library: SharedLibrary, providers: SharedProviders) -> PlaylistModel {
         let tracks = playlist
             .tracks
             .par_iter()

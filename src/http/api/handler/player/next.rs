@@ -2,14 +2,15 @@ use iron::prelude::*;
 use iron::status;
 use iron::Handler;
 
-use player::GlobalPlayer;
+use player::SharedPlayer;
+use app::SharedApp;
 
 pub struct NextPlayerHandler {
-    player: GlobalPlayer
+    player: SharedPlayer
 }
 
 impl NextPlayerHandler {
-    pub fn new(player: GlobalPlayer) -> NextPlayerHandler {
+    pub fn new(player: SharedPlayer) -> NextPlayerHandler {
         NextPlayerHandler {
             player
         }

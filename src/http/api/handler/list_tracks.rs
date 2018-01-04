@@ -2,17 +2,17 @@ use iron::prelude::*;
 use iron::status;
 use iron::Handler;
 
-use library::GlobalLibrary;
+use library::SharedLibrary;
 use http::api::viewmodels::TrackModel;
 
 use serde_json;
 
 pub struct ListTracksHandler {
-    library: GlobalLibrary
+    library: SharedLibrary
 }
 
 impl ListTracksHandler {
-    pub fn new(library: GlobalLibrary) -> ListTracksHandler {
+    pub fn new(library: SharedLibrary) -> ListTracksHandler {
         ListTracksHandler {
             library
         }

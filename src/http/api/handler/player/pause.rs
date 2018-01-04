@@ -2,14 +2,14 @@ use iron::prelude::*;
 use iron::status;
 use iron::Handler;
 
-use player::GlobalPlayer;
+use player::SharedPlayer;
 
 pub struct PausePlayerHandler {
-    player: GlobalPlayer
+    player: SharedPlayer
 }
 
 impl PausePlayerHandler {
-    pub fn new(player: GlobalPlayer) -> PausePlayerHandler {
+    pub fn new(player: SharedPlayer) -> PausePlayerHandler {
         PausePlayerHandler {
             player
         }

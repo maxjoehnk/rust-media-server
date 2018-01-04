@@ -1,4 +1,4 @@
-use library::{GlobalLibrary, Album, Track, Artist};
+use library::{SharedLibrary, Album, Track, Artist};
 
 #[derive(Clone, Debug, Serialize)]
 pub struct ArtistModel {
@@ -9,7 +9,7 @@ pub struct ArtistModel {
 }
 
 impl ArtistModel {
-    pub fn from(artist: Artist, library: GlobalLibrary) -> ArtistModel {
+    pub fn from(artist: Artist, library: SharedLibrary) -> ArtistModel {
         let albums = library.albums.read().unwrap();
         let tracks = library.tracks.read().unwrap();
         let albums = albums
