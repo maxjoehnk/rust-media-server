@@ -12,3 +12,9 @@ pub struct Track {
     pub coverart: Option<String>,
     pub duration: Option<u64>
 }
+
+impl PartialEq for Track {
+    fn eq(&self, other: &Track) -> bool {
+        self.uri == other.uri
+    }
+}

@@ -13,13 +13,13 @@ pub struct AudioFormat {
 
 #[derive(Debug, Serialize)]
 pub struct StatusResponse {
-    volume: i32,
+    volume: u32,
     repeat: bool,
     random: bool,
     single: bool,
     consume: bool,
     playlist: u32,
-    playlistlength: i32,
+    playlistlength: usize,
     state: PlayerState,
 //    song: i32,
 //    songid: i32,
@@ -50,13 +50,13 @@ impl MpdCommand<StatusResponse> for StatusCommand {
     fn handle(&self, player: &GlobalPlayer, _library: &GlobalLibrary, _providers: &SharedProviders) -> Result<StatusResponse, MpdError> {
         let player = player.lock().unwrap();
         Ok(StatusResponse {
-            volume: 0,
+            volume: player.volume(),
             repeat: false,
             random: false,
             single: false,
             consume: false,
             playlist: 0,
-            playlistlength: 0,
+            playlistlength: player.queue.size(),
             state: player.state.clone(),
             xfade: 0
         })

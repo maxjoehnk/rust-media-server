@@ -5,6 +5,7 @@ use std::thread;
 use std::time::Duration;
 use gstreamer::prelude::*;
 use library::Track;
+use logger::logger;
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
 pub enum PlayerState {
@@ -29,7 +30,8 @@ impl From<PlayerState> for gst::State {
 pub struct Player {
     pub state: PlayerState,
     pub queue: Queue,
-    backend: GstBackend
+    backend: GstBackend,
+    volume: u32
 }
 
 impl Player {
@@ -37,7 +39,8 @@ impl Player {
         let player = Player {
             state: PlayerState::Stop,
             queue: Queue::new(),
-            backend: GstBackend::new()
+            backend: GstBackend::new(),
+            volume: 100
         };
 
         player
@@ -113,6 +116,15 @@ impl Player {
         }
     }
 
+    pub fn volume(&self) -> u32 {
+        return self.volume
+    }
+
+    pub fn set_volume(&mut self, volume: u32) {
+        self.volume = volume;
+        self.backend.set_volume(volume as f64 / 100.0);
+    }
+
     fn get_backend(&self) -> &GstBackend {
         &self.backend
     }
@@ -126,6 +138,7 @@ impl Player {
 struct GstBackend {
     pipeline: gst::Pipeline,
     decoder: gst::Element,
+    volume: gst::Element,
     sink: gst::Element
 }
 
@@ -134,13 +147,17 @@ impl GstBackend {
         let player = GstBackend {
             pipeline: gst::Pipeline::new(None),
             decoder: gst::ElementFactory::make("uridecodebin", None).expect("uridecodebin"),
+            volume: gst::ElementFactory::make("volume", None).expect("volume"),
             sink: gst::ElementFactory::make("autoaudiosink", None).expect("autoaudiosink")
         };
 
         player.pipeline.add(&player.decoder).expect("add decoder to pipeline");
+        player.pipeline.add(&player.volume).expect("add volume to pipeline");
         player.pipeline.add(&player.sink).expect("add sink to pipeline");
 
-        let sink_pad = player.sink.get_static_pad("sink").expect("audio sink_pad");
+        player.volume.link(&player.sink);
+
+        let sink_pad = player.volume.get_static_pad("sink").expect("volume sink_pad");
         player.decoder.connect_pad_added(move |_el: &gst::Element, pad: &gst::Pad| {
             pad.link(&sink_pad);
         });
@@ -153,13 +170,21 @@ impl GstBackend {
     }
 
     fn set_track(&self, track: &Track, state: PlayerState) {
-        println!("Selecting {:?}", track);
+        debug!(logger, "Selecting {:?}", track);
         self.pipeline.set_state(gst::State::Null);
         self.decoder.set_property_from_str("uri", track.stream_url.as_str());
 
         let ret = self.pipeline.set_state(state.into());
 
         assert_ne!(ret, gst::StateChangeReturn::Failure);
+    }
+
+    fn set_volume(&self, volume: f64) {
+        debug!(logger, "set volume {}", volume);
+        match self.volume.set_property("volume", &volume) {
+            Err(err) => error!(logger, "Can't set Volume {:?}", err),
+            _ => {},
+        }
     }
 
     fn play(&self) {

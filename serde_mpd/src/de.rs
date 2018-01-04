@@ -3,6 +3,7 @@ use std::ops::{Neg, AddAssign, MulAssign};
 use serde::de::{self, Deserialize, DeserializeSeed, Visitor, EnumAccess, VariantAccess, IntoDeserializer};
 
 use error::{Error, Result};
+use std::str::FromStr;
 
 pub struct Deserializer<'de> {
     input: &'de str,
@@ -81,9 +82,22 @@ impl<'de> Deserializer<'de> {
     }
 
     fn parse_signed<T>(&mut self) -> Result<T>
-        where T: Neg<Output=T> + AddAssign<T> + MulAssign<T> + From<i8>
+        where T: Neg<Output=T> + AddAssign<T> + MulAssign<T> + FromStr
     {
-        unimplemented!()
+        match self.peek_char()? {
+            '"' => {
+                self.next_char()?;
+                match self.input.find('"') {
+                    Some(len) => {
+                        let s = &self.input[..len];
+                        self.input = &self.input[len + 1..];
+                        s.parse::<T>().ok().ok_or(Error::ExpectedInteger)
+                    },
+                    None => Err(Error::Eof),
+                }
+            },
+            _ => Err(Error::ExpectedString),
+        }
     }
 
     // Parse an escaped String

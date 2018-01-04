@@ -139,6 +139,10 @@ enum MpdCommands {
     Add(String),
     #[serde(rename = "addid")]
     AddId(String),
+    #[serde(rename = "volume")]
+    ChangeVolumeBy(i32),
+    #[serde(rename = "setvol")]
+    ChangeVolume(u32)
 }
 
 fn parse_single(line: String) -> Result<MpdCommands, serde_mpd::Error> {
@@ -173,6 +177,10 @@ fn handle_mpd_command(cmd: MpdCommands, player: &GlobalPlayer, library: &GlobalL
         MpdCommands::Outputs => commands::OutputsCommand::new().handle(player, library, providers)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::List(ref t) if t == "Artist" => commands::ListArtistCommand::new().handle(player, library, providers)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::ChangeVolumeBy(volume) => commands::ChangeVolumeCommand::new(volume).handle(player, library, providers)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::ChangeVolume(volume) => commands::SetVolumeCommand::new(volume).handle(player, library, providers)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::CommandList(commands) => {
             let mut result = String::new();

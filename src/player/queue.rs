@@ -54,4 +54,8 @@ impl Queue {
         self.current
             .and_then(move|index| self.tracks.get(index as usize))
     }
+
+    pub fn size(&self) -> usize {
+        self.tracks.len()
+    }
 }
