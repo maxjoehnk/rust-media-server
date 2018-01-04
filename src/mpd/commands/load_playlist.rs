@@ -24,13 +24,9 @@ impl MpdCommand<()> for LoadPlaylistCommand {
             .unwrap()
             .iter()
             .find(|playlist| playlist.title == self.name)
+            .cloned()
             .unwrap()
-            .tracks
-            .par_iter()
-            .map(|uri| app.library.resolve_track(app.providers.clone(), uri))
-            .filter(|track| track.is_some())
-            .map(|track| track.unwrap())
-            .collect();
+            .tracks;
         let mut player = app.player.lock().unwrap();
         player.queue.add_multiple(tracks);
         Ok(())

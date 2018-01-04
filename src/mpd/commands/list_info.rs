@@ -75,7 +75,15 @@ impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>)> for ListInfoC
                     .map(|item| item.track.unwrap())
                     .map(MpdSong::from)
                     .collect();
-                Ok((folders, vec![], items))
+                let playlists = folder
+                    .items
+                    .iter()
+                    .filter(|item| item.playlist.is_some())
+                    .cloned()
+                    .map(|item| item.playlist.unwrap())
+                    .map(PlaylistEntry::from)
+                    .collect();
+                Ok((folders, playlists, items))
             }
         }
     }

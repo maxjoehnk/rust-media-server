@@ -1,6 +1,6 @@
 use soundcloud;
 use provider;
-use library::Playlist;
+use library::{Playlist, Track};
 use super::track::SoundcloudTrack;
 
 #[derive(Debug, Clone)]
@@ -17,7 +17,9 @@ impl From<SoundcloudPlaylist> for Playlist {
             title: playlist.title,
             tracks: playlist.tracks
                 .iter()
-                .map(|playlist| format!("soundcloud://{}", playlist.id))
+                .cloned()
+                .map(SoundcloudTrack::from)
+                .map(Track::from)
                 .collect(),
             provider: provider::Provider::Soundcloud
         }

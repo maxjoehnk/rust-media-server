@@ -49,10 +49,35 @@ impl provider::ProviderInstance for SoundcloudProvider {
         })
     }
     fn root(&self) -> provider::ProviderFolder {
-        provider::ProviderFolder::empty()
+        provider::ProviderFolder {
+            folders: vec!["Likes".to_owned()],
+            items: vec![]
+        }
     }
     fn navigate(&self, path: Vec<String>) -> Result<provider::ProviderFolder, provider::NavigationError> {
-        Err(provider::NavigationError::PathNotFound)
+        match path[0].as_str() {
+            "Likes" => {
+                let client = self.client();
+                let likes = client.likes()?;
+                let items = likes
+                    .iter()
+                    .cloned()
+                    .filter(|like| like.track.is_some() || like.playlist.is_some())
+                    .map(|like| (like.track, like.playlist))
+                    .map(|like| match like {
+                        (Some(track), _) => provider::ProviderItem::from(Track::from(track::SoundcloudTrack::from(track))),
+                        (_, Some(playlist)) => provider::ProviderItem::from(Playlist::from(playlist::SoundcloudPlaylist::from(playlist))),
+                        _ => provider::ProviderItem::empty()
+                    })
+                    .collect();
+                let folder = provider::ProviderFolder {
+                    folders: vec![],
+                    items
+                };
+                Ok(folder)
+            },
+            _ => Err(provider::NavigationError::PathNotFound)
+        }
     }
     fn search(&self, query: String) -> Vec<provider::ProviderItem> {
         let client = self.client();
@@ -88,5 +113,11 @@ impl provider::ProviderInstance for SoundcloudProvider {
 impl From<soundcloud::Error> for provider::sync_error::SyncError {
     fn from(error: soundcloud::Error) -> provider::sync_error::SyncError {
         provider::sync_error::SyncError::ConfigurationError
+    }
+}
+
+impl From<soundcloud::Error> for provider::NavigationError {
+    fn from(error: soundcloud::Error) -> provider::NavigationError {
+        provider::NavigationError::FetchError
     }
 }

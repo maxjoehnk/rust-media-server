@@ -1,11 +1,24 @@
-use library::{Track, Album, Artist};
+use library::{Track, Album, Artist, Playlist};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ProviderItem {
     pub label: String,
     pub track: Option<Track>,
     pub album: Option<Album>,
-    pub artist: Option<Artist>
+    pub artist: Option<Artist>,
+    pub playlist: Option<Playlist>
+}
+
+impl ProviderItem {
+    pub fn empty() -> ProviderItem {
+        ProviderItem {
+            label: String::new(),
+            track: None,
+            album: None,
+            artist: None,
+            playlist: None
+        }
+    }
 }
 
 impl From<Track> for ProviderItem {
@@ -14,7 +27,8 @@ impl From<Track> for ProviderItem {
             label: track.title.clone(),
             track: Some(track),
             album: None,
-            artist: None
+            artist: None,
+            playlist: None
         }
     }
 }
@@ -25,7 +39,8 @@ impl From<Album> for ProviderItem {
             label: album.title.clone(),
             track: None,
             album: Some(album),
-            artist: None
+            artist: None,
+            playlist: None
         }
     }
 }
@@ -36,7 +51,20 @@ impl From<Artist> for ProviderItem {
             label: artist.name.clone(),
             track: None,
             album: None,
-            artist: Some(artist)
+            artist: Some(artist),
+            playlist: None
+        }
+    }
+}
+
+impl From<Playlist> for ProviderItem {
+    fn from(playlist: Playlist) -> ProviderItem {
+        ProviderItem {
+            label: playlist.title.clone(),
+            track: None,
+            album: None,
+            artist: None,
+            playlist: Some(playlist)
         }
     }
 }

@@ -29,10 +29,8 @@ impl MpdCommand<Vec<MpdSong>> for ListPlaylistInfoCommand {
         match playlist {
             Some(playlist) => {
                 let tracks = playlist.tracks
-                    .par_iter()
-                    .map(|uri| app.library.resolve_track(app.providers.clone(), uri))
-                    .filter(|track| track.is_some())
-                    .map(|track| track.unwrap())
+                    .iter()
+                    .cloned()
                     .map(MpdSong::from)
                     .collect();
                 Ok(tracks)
