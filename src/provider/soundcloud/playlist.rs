@@ -10,6 +10,29 @@ pub struct SoundcloudPlaylist {
     pub tracks: Vec<SoundcloudTrack>
 }
 
+impl SoundcloudPlaylist {
+    pub fn from(playlist: soundcloud::Playlist, client_id: String) -> SoundcloudPlaylist {
+        SoundcloudPlaylist {
+            id: playlist.id,
+            title: playlist.title,
+            tracks: playlist
+                .tracks
+                .iter()
+                .cloned()
+                .map(SoundcloudTrack::from)
+                .filter(|track| track.url.is_some())
+                .map(|track| SoundcloudTrack {
+                    id: track.id,
+                    title: track.title,
+                    url: track.url.map(|url| format!("{}?client_id={}", url, client_id)),
+                    coverart: track.coverart,
+                    duration: track.duration
+                })
+                .collect()
+        }
+    }
+}
+
 impl From<SoundcloudPlaylist> for Playlist {
     fn from(playlist: SoundcloudPlaylist) -> Playlist {
         Playlist {

@@ -74,8 +74,12 @@ impl<'de> Deserializer<'de> {
                     int *= T::from(10);
                     int += T::from(ch as u8 - b'0');
                 }
-                _ => {
+                Some('"') => {
+                    self.input = &self.input[1..];
                     return Ok(int);
+                },
+                _ => {
+                    return Err(Error::ExpectedInteger);
                 }
             }
         }

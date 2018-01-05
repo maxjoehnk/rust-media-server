@@ -37,7 +37,7 @@ impl provider::ProviderInstance for SoundcloudProvider {
             .playlists()?
             .iter()
             .cloned()
-            .map(playlist::SoundcloudPlaylist::from)
+            .map(|playlist| playlist::SoundcloudPlaylist::from(playlist, self.client_id.clone()))
             .map(Playlist::from)
             .collect();
         library.add_playlists(&mut playlists);
@@ -65,8 +65,12 @@ impl provider::ProviderInstance for SoundcloudProvider {
                     .filter(|like| like.track.is_some() || like.playlist.is_some())
                     .map(|like| (like.track, like.playlist))
                     .map(|like| match like {
-                        (Some(track), _) => provider::ProviderItem::from(Track::from(track::SoundcloudTrack::from(track))),
-                        (_, Some(playlist)) => provider::ProviderItem::from(Playlist::from(playlist::SoundcloudPlaylist::from(playlist))),
+                        (Some(track), _) => provider::ProviderItem::from(
+                            Track::from(
+                                track::SoundcloudTrack::from(track))),
+                        (_, Some(playlist)) => provider::ProviderItem::from(
+                            Playlist::from(
+                                playlist::SoundcloudPlaylist::from(playlist, self.client_id.clone()))),
                         _ => provider::ProviderItem::empty()
                     })
                     .collect();

@@ -154,6 +154,8 @@ fn handle_mpd_command(cmd: MpdCommands, app: &SharedApp) -> Result<String, error
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::Pause(true) => commands::PauseCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::Play(_) => commands::PlayCommand::new().handle(app)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::Stop => commands::StopCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::ListInfo(path) => commands::ListInfoCommand::new(path).handle(app)
