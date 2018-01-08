@@ -7,12 +7,14 @@ use logger::logger;
 use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write, BufReader, BufRead};
 use std::thread;
+use std::sync::{Mutex, Arc};
 
 use app::SharedApp;
 
 use serde_mpd;
 
 use mpd::commands::MpdCommand;
+use bus;
 
 #[derive(Deserialize, Clone)]
 pub struct MpdConfig {
@@ -42,6 +44,19 @@ fn handle_client(mut stream: TcpStream, app: SharedApp) {
         Err(e) => error!(logger, "[MPD] {:?}", &e)
     }
 
+
+
+    let events: Arc<Mutex<Vec<bus::Message>>> = Arc::new(Mutex::new(vec![]));
+
+    let mut bus = app.bus.lock().unwrap();
+
+    {
+        let mut events = events.clone();
+        bus.subscribe(Box::new(move|msg| {
+            events.lock().unwrap().push(msg);
+        }));
+    }
+
     loop {
         let line = reader.by_ref().lines().next();
         match line {
@@ -67,6 +82,9 @@ fn handle_client(mut stream: TcpStream, app: SharedApp) {
                         };
                         match cmd {
                             Ok(MpdCommands::Idle) => {},
+                            Ok(MpdCommands::Close) => {
+                                break;
+                            },
                             Ok(cmd) => {
                                 let mut result = handle_mpd_command(cmd, &app).unwrap();
                                 result += "OK\n";
@@ -122,7 +140,8 @@ enum MpdCommands {
     #[serde(rename = "next")]
     Next,
     #[serde(rename = "pause")]
-    Pause(bool),
+    Pause,
+    // Pause(bool), Spec says bool argument exists, ncmpcpp doesn't send it
     #[serde(rename = "play")]
     Play(u64),
     #[serde(rename = "previous")]
@@ -138,7 +157,13 @@ enum MpdCommands {
     #[serde(rename = "volume")]
     ChangeVolumeBy(i32),
     #[serde(rename = "setvol")]
-    ChangeVolume(u32)
+    ChangeVolume(u32),
+    #[serde(rename = "commands")]
+    Commands,
+    #[serde(rename = "tagtypes")]
+    TagTypes,
+    #[serde(rename = "close")]
+    Close
 }
 
 fn parse_single(line: String) -> Result<MpdCommands, serde_mpd::Error> {
@@ -152,7 +177,8 @@ fn handle_mpd_command(cmd: MpdCommands, app: &SharedApp) -> Result<String, error
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::CurrentSong => commands::CurrentSongCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
-        MpdCommands::Pause(true) => commands::PauseCommand::new().handle(app)
+        // MpdCommands::Pause(true) => commands::PauseCommand::new().handle(app)
+        MpdCommands::Pause => commands::PauseCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::Play(_) => commands::PlayCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
@@ -179,6 +205,10 @@ fn handle_mpd_command(cmd: MpdCommands, app: &SharedApp) -> Result<String, error
         MpdCommands::ChangeVolumeBy(volume) => commands::ChangeVolumeCommand::new(volume).handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::ChangeVolume(volume) => commands::SetVolumeCommand::new(volume).handle(app)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::Commands => commands::CommandsCommand::new().handle(app)
+            .map(|res| serde_mpd::to_string(&res).unwrap()),
+        MpdCommands::TagTypes => commands::TagTypesCommand::new().handle(app)
             .map(|res| serde_mpd::to_string(&res).unwrap()),
         MpdCommands::CommandList(commands) => {
             let mut result = String::new();
