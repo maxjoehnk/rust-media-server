@@ -63,7 +63,7 @@ fn main() {
     let config = read_config();
     let bus: bus::SharedBus = Arc::new(Mutex::new(bus::MessageBus::new()));
     let library: library::SharedLibrary = Arc::new(library::Library::new());
-    let player: player::SharedPlayer = Arc::new(Mutex::new(player::Player::new(bus.clone())));
+    let player: player::SharedPlayer = Arc::new(Mutex::new(player::Player::new(Arc::clone(&bus))));
 
     let mut providers: provider::SharedProviders = vec![];
     {
@@ -83,10 +83,10 @@ fn main() {
     });
 
     let threads = vec![
-        jobs::mpd::spawn(config.mpd.clone(), app.clone()),
-        jobs::http::spawn(config.http.clone(), app.clone()),
-        jobs::gst::spawn(app.clone()),
-        jobs::sync::spawn(app.clone())
+        jobs::mpd::spawn(config.mpd.clone(), Arc::clone(&app)),
+        jobs::http::spawn(config.http.clone(), Arc::clone(&app)),
+        jobs::gst::spawn(Arc::clone(&app)),
+        jobs::sync::spawn(Arc::clone(&app))
     ];
 
     for handle in threads {

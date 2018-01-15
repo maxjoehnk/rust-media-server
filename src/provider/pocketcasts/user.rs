@@ -3,11 +3,11 @@ use provider::pocketcasts::PocketcastPodcast;
 use reqwest::Client;
 use reqwest::header;
 
-const LOGIN_URI: &'static str = "https://play.pocketcasts.com/users/sign_in";
-const GET_SUBSCRIPTIONS_URI: &'static str = "https://play.pocketcasts.com/web/podcasts/all.json";
-const GET_TOP_CHARTS_URI: &'static str = "https://static.pocketcasts.com/discover/json/popular_world.json";
-const GET_FEATURED_URI: &'static str = "https://static.pocketcasts.com/discover/json/featured.json";
-const GET_TRENDING_URI: &'static str = "https://static.pocketcasts.com/discover/json/trending.json";
+const LOGIN_URI: &str = "https://play.pocketcasts.com/users/sign_in";
+const GET_SUBSCRIPTIONS_URI: &str = "https://play.pocketcasts.com/web/podcasts/all.json";
+const GET_TOP_CHARTS_URI: &str = "https://static.pocketcasts.com/discover/json/popular_world.json";
+const GET_FEATURED_URI: &str = "https://static.pocketcasts.com/discover/json/featured.json";
+const GET_TRENDING_URI: &str = "https://static.pocketcasts.com/discover/json/trending.json";
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct PocketcastUser {
@@ -29,7 +29,7 @@ impl PocketcastUser {
             .send()
             .unwrap();
 
-        let cookies = res.headers().get::<header::SetCookie>().unwrap();
+        let _cookies = res.headers().get::<header::SetCookie>().unwrap();
     }
 
     pub fn get_subscriptions(&self) -> Vec<PocketcastPodcast> {

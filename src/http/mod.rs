@@ -11,10 +11,8 @@ use std::fs::File;
 use mount::Mount;
 use staticfile::Static;
 use std::path::Path;
+use std::sync::Arc;
 
-use library::SharedLibrary;
-use player::SharedPlayer;
-use provider::SharedProviders;
 use app::SharedApp;
 
 mod api;
@@ -60,7 +58,7 @@ fn build_mount(app: SharedApp) -> Mount {
     // Graphql Api
     // TODO
     // Rest API
-    mount.mount("/api", api::build(app.player.clone(), app.library.clone(), app.providers.clone()));
+    mount.mount("/api", api::build(Arc::clone(&app.player), Arc::clone(&app.library), app.providers.clone()));
     // Frontend
     let mut frontend = Chain::new(Static::new(Path::new("app/dist")));
     frontend.link_around(Fallback);

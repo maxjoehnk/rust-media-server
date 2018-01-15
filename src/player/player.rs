@@ -54,7 +54,7 @@ impl Player {
                 match current {
                     Some(track) => {
                         self.state = PlayerState::Play;
-                        self.bus.lock().unwrap().emit(Message::PlayerState);
+                        self.bus.lock().unwrap().emit(&Message::PlayerState);
                         self.select_track(&track);
                     },
                     None => {}
@@ -62,7 +62,7 @@ impl Player {
             },
             PlayerState::Pause => {
                 self.state = PlayerState::Play;
-                self.bus.lock().unwrap().emit(Message::PlayerState);
+                self.bus.lock().unwrap().emit(&Message::PlayerState);
                 self.backend.play();
             },
             _ => {}
@@ -71,13 +71,13 @@ impl Player {
 
     pub fn pause(&mut self) {
         self.state = PlayerState::Pause;
-        self.bus.lock().unwrap().emit(Message::PlayerState);
+        self.bus.lock().unwrap().emit(&Message::PlayerState);
         self.backend.pause();
     }
 
     pub fn stop(&mut self) {
         self.state = PlayerState::Stop;
-        self.bus.lock().unwrap().emit(Message::PlayerState);
+        self.bus.lock().unwrap().emit(&Message::PlayerState);
         self.backend.stop();
         self.queue.clear();
     }
@@ -87,7 +87,7 @@ impl Player {
             match self.queue.prev() {
                 None => {
                     self.state = PlayerState::Stop;
-                    self.bus.lock().unwrap().emit(Message::PlayerState);
+                    self.bus.lock().unwrap().emit(&Message::PlayerState);
                     self.backend.stop();
                 },
                 _ => {}
@@ -108,7 +108,7 @@ impl Player {
             match self.queue.next() {
                 None => {
                     self.state = PlayerState::Stop;
-                    self.bus.lock().unwrap().emit(Message::PlayerState);
+                    self.bus.lock().unwrap().emit(&Message::PlayerState);
                 },
                 _ => {}
             }
@@ -124,13 +124,13 @@ impl Player {
     }
 
     pub fn volume(&self) -> u32 {
-        return self.volume
+        self.volume
     }
 
     pub fn set_volume(&mut self, volume: u32) {
         self.volume = volume;
         self.backend.set_volume(volume as f64 / 100.0);
-        self.bus.lock().unwrap().emit(Message::Volume);
+        self.bus.lock().unwrap().emit(&Message::Volume);
     }
 
     fn get_backend(&self) -> &GstBackend {

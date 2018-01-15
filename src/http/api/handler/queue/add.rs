@@ -22,7 +22,7 @@ impl AddToQueueHandler {
 
 impl Handler for AddToQueueHandler {
     fn handle(&self, req: &mut Request) -> IronResult<Response> {
-        let ref id = req.extensions.get::<Router>().unwrap().find("id").unwrap();
+        let id = req.extensions.get::<Router>().unwrap().find("id").unwrap();
         let id = id.parse::<usize>().unwrap();
         let track: Option<Track> = self.library
             .get_track(&id);

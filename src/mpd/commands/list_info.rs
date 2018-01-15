@@ -34,8 +34,10 @@ impl ListInfoCommand {
     }
 }
 
-impl MpdCommand<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>)> for ListInfoCommand {
-    fn handle(&self, app: &SharedApp) -> Result<(Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>), MpdError> {
+type ListInfoResponse = (Vec<PathItem>, Vec<PlaylistEntry>, Vec<MpdSong>);
+
+impl MpdCommand<ListInfoResponse> for ListInfoCommand {
+    fn handle(&self, app: &SharedApp) -> Result<ListInfoResponse, MpdError> {
         match self.path {
             None => {
                 let explorer = Explorer::new(app.providers.to_vec());

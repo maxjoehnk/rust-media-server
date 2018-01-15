@@ -1,4 +1,4 @@
-use std::sync::{RwLock, Arc, Mutex};
+use std::sync::{Arc, Mutex};
 use std::fmt;
 use logger::logger;
 
@@ -25,7 +25,7 @@ impl MessageBus {
         }
     }
 
-    pub fn emit(&self, msg: Message) {
+    pub fn emit(&self, msg: &Message) {
         debug!(logger, "Emitting {:?}", msg);
         for subscription in &self.subscriptions {
             subscription(msg.clone());

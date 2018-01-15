@@ -1,6 +1,5 @@
 use library::{SharedLibrary, Playlist, Track};
 use provider::{Provider, SharedProviders};
-use rayon::prelude::*;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct PlaylistModel {
@@ -11,7 +10,7 @@ pub struct PlaylistModel {
 }
 
 impl PlaylistModel {
-    pub fn from(playlist: Playlist, library: SharedLibrary, providers: SharedProviders) -> PlaylistModel {
+    pub fn from(playlist: Playlist, _library: SharedLibrary, _providers: SharedProviders) -> PlaylistModel {
         PlaylistModel {
             id: playlist.id,
             title: playlist.title,

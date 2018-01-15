@@ -96,7 +96,7 @@ impl provider::ProviderInstance for PocketcastsProvider {
                         episodes
                             .iter()
                             .cloned()
-                            .map(|episode| Track::from(episode))
+                            .map(Track::from)
                             .map(provider::ProviderItem::from)
                             .collect()
                     })

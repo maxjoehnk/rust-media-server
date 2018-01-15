@@ -35,7 +35,7 @@ pub fn open(config: MpdConfig, app: SharedApp) {
     }
 }
 
-fn handle_client(mut stream: TcpStream, app: SharedApp) {
+fn handle_client(stream: TcpStream, app: SharedApp) {
     let mut reader = BufReader::new(stream);
     let header = "OK MPD 0.16.0\n";
     let result = reader.get_ref().write(header.as_bytes());
@@ -51,7 +51,7 @@ fn handle_client(mut stream: TcpStream, app: SharedApp) {
     let mut bus = app.bus.lock().unwrap();
 
     {
-        let mut events = events.clone();
+        let events = events.clone();
         bus.subscribe(Box::new(move|msg| {
             events.lock().unwrap().push(msg);
         }));

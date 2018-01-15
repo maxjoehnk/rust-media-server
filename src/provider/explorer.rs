@@ -16,7 +16,7 @@ impl Explorer {
     pub fn navigate_absolute(&mut self, path: String) {
         let mut absolute = vec![];
         let mut current = path.as_str();
-        while current.len() > 0 {
+        while !current.is_empty() {
             let layer = match current.find('/') {
                 Some(index) => {
                     let layer = &current[..index];

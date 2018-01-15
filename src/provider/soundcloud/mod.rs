@@ -4,7 +4,6 @@ mod playlist;
 use soundcloud;
 use provider;
 use library::{SharedLibrary, Playlist, Track};
-use url::Url;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -89,7 +88,7 @@ impl provider::ProviderInstance for SoundcloudProvider {
             .query(Some(query))
             .get()
             .unwrap()
-            .unwrap_or(vec![])
+            .unwrap_or_else(|| vec![])
             .iter()
             .filter(|track| track.stream_url.is_some())
             .cloned()
@@ -115,13 +114,13 @@ impl provider::ProviderInstance for SoundcloudProvider {
 }
 
 impl From<soundcloud::Error> for provider::sync_error::SyncError {
-    fn from(error: soundcloud::Error) -> provider::sync_error::SyncError {
+    fn from(_error: soundcloud::Error) -> provider::sync_error::SyncError {
         provider::sync_error::SyncError::ConfigurationError
     }
 }
 
 impl From<soundcloud::Error> for provider::NavigationError {
-    fn from(error: soundcloud::Error) -> provider::NavigationError {
+    fn from(_error: soundcloud::Error) -> provider::NavigationError {
         provider::NavigationError::FetchError
     }
 }

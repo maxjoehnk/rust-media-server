@@ -1,8 +1,5 @@
 use library::Track;
 use provider::Provider;
-use std::str::FromStr;
-use std::fmt::Display;
-use serde::de::{self, Deserialize, Deserializer};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PocketcastEpisode<> {
@@ -31,16 +28,14 @@ impl From<PocketcastEpisode> for Track {
 }
 
 mod string_or_int {
-    use std::fmt;
-
     use serde::{de, Serializer, Deserialize, Deserializer};
 
     pub fn serialize<S>(value: &Option<u64>, serializer: S) -> Result<S::Ok, S::Error>
         where S: Serializer
     {
-        match value {
-            &Some(value) => serializer.collect_str(&value),
-            &None => serializer.serialize_unit()
+        match *value {
+            Some(value) => serializer.collect_str(&value),
+            None => serializer.serialize_unit()
         }
     }
 
@@ -56,7 +51,7 @@ mod string_or_int {
         }
 
         match StringOrInt::deserialize(deserializer)? {
-            StringOrInt::String(s) => s.parse().map_err(de::Error::custom).map(|val| Some(val)),
+            StringOrInt::String(s) => s.parse().map_err(de::Error::custom).map(Some),
             StringOrInt::Int(i) => Ok(Some(i)),
             StringOrInt::Null => Ok(None)
         }

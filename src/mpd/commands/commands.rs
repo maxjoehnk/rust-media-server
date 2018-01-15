@@ -28,7 +28,7 @@ impl CommandsCommand {
 }
 
 impl MpdCommand<Vec<Command>> for CommandsCommand {
-    fn handle(&self, app: &SharedApp) -> Result<Vec<Command>, MpdError> {
+    fn handle(&self, _app: &SharedApp) -> Result<Vec<Command>, MpdError> {
         Ok(vec![
             Command::new("status"),
             Command::new("currentsong"),

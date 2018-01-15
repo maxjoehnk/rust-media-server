@@ -11,7 +11,6 @@ pub use self::sync_error::SyncError;
 pub use self::explorer::Explorer;
 
 use std::sync::{Arc, RwLock};
-use std::fmt::Debug;
 use library::{SharedLibrary, Track};
 
 pub type SharedProviders = Vec<Arc<RwLock<Box<ProviderInstance + Send + Sync>>>>;

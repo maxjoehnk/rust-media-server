@@ -1,6 +1,5 @@
 use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
-use mpd::song::MpdSong;
 use app::SharedApp;
 
 pub struct TagTypesCommand {
@@ -26,7 +25,7 @@ impl TagTypesCommand {
 }
 
 impl MpdCommand<Vec<TagType>> for TagTypesCommand {
-    fn handle(&self, app: &SharedApp) -> Result<Vec<TagType>, MpdError> {
+    fn handle(&self, _app: &SharedApp) -> Result<Vec<TagType>, MpdError> {
         Ok(vec![
             TagType::new("Track"),
         ])

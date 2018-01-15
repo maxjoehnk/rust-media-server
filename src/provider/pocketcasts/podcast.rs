@@ -4,7 +4,7 @@ use reqwest::Client;
 use reqwest::header;
 use provider::Provider;
 
-const GET_EPISODES_URI: &'static str = "https://play.pocketcasts.com/web/episodes/find_by_podcast.json";
+const GET_EPISODES_URI: &str = "https://play.pocketcasts.com/web/episodes/find_by_podcast.json";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PocketcastPodcast {

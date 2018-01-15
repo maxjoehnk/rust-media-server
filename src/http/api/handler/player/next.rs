@@ -3,7 +3,6 @@ use iron::status;
 use iron::Handler;
 
 use player::SharedPlayer;
-use app::SharedApp;
 
 pub struct NextPlayerHandler {
     player: SharedPlayer

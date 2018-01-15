@@ -1,7 +1,6 @@
 use mpd::error::MpdError;
 use mpd::commands::MpdCommand;
 use app::SharedApp;
-use rayon::prelude::*;
 
 pub struct LoadPlaylistCommand {
     name: String

@@ -5,6 +5,7 @@ use iron::Handler;
 use library::SharedLibrary;
 use player::SharedPlayer;
 use http::api::viewmodels::TrackModel;
+use std::sync::Arc;
 
 use serde_json;
 
@@ -23,14 +24,14 @@ impl GetQueueHandler {
 }
 
 impl Handler for GetQueueHandler {
-    fn handle(&self, req: &mut Request) -> IronResult<Response> {
+    fn handle(&self, _req: &mut Request) -> IronResult<Response> {
         let player = self.player.lock().unwrap();
         let tracks: Vec<TrackModel> = player
             .queue
             .tracks
             .iter()
             .cloned()
-            .map(|track| TrackModel::from(track, self.library.clone()))
+            .map(|track| TrackModel::from(track, Arc::clone(&self.library)))
             .collect();
 
         let body = serde_json::to_string(&tracks).unwrap();
